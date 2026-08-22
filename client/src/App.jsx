@@ -6,12 +6,12 @@ import Login from "./pages/auth/login";
 import Register from "./pages/auth/register";
 import ForgotPassword from "./pages/auth/forgotpass";
 import Dashboard from "./pages/dashboard/dashboard";
-//import Children from "./pages/children/children";
+import Children from "./pages/children/children";
 import ChildDetails from "./pages/childDetails/childDetails";
-//import Schedule from "./pages/schedule/schedule";
+import Schedule from "./pages/schedule/schedule";
 import Reminders from "./pages/reminders/reminders";
-//import Profile from "./pages/profile/profile";
-//import Reports from "./pages/reports/reports";
+import Profile from "./pages/profile/profile";
+import Reports from "./pages/reports/reports";
 import Settings from "./pages/settings/settings";
 function App() {
   return (
