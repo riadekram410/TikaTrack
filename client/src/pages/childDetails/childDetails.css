@@ -1,0 +1,1069 @@
+/* =========================================
+   CHILD DETAILS PAGE
+========================================= */
+
+.child-details-page {
+  min-height: 100vh;
+  display: flex;
+  background: #f7f9f8;
+  color: #17211b;
+}
+
+
+/* SIDEBAR */
+
+.child-details-sidebar {
+  width: 250px;
+  min-height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 28px 16px;
+
+  background: linear-gradient(
+    180deg,
+    #064c2d 0%,
+    #053b25 100%
+  );
+
+  z-index: 100;
+}
+
+.child-details-logo {
+  padding: 0 16px;
+
+  color: #ffffff;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  letter-spacing: -1px;
+}
+
+.child-details-logo span {
+  color: #72d49b;
+}
+
+
+/* NAV */
+
+.child-details-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  margin-top: 55px;
+}
+
+.child-details-nav a {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  color: #b9d2c5;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  transition: 0.2s ease;
+}
+
+.child-details-nav a span {
+  width: 20px;
+  text-align: center;
+  font-size: 17px;
+}
+
+.child-details-nav a:hover,
+.child-details-nav a.active {
+  background: #167c4c;
+  color: #ffffff;
+}
+
+.child-details-nav a.active {
+  font-weight: 600;
+}
+
+
+/* LOGOUT */
+
+.child-details-logout {
+  margin-top: auto;
+
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #b9d2c5;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+
+/* MAIN */
+
+.child-details-main {
+  width: calc(100% - 250px);
+
+  margin-left: 250px;
+
+  min-height: 100vh;
+}
+
+
+/* TOPBAR */
+
+.child-details-topbar {
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 38px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e6ebe8;
+}
+
+.child-details-top-space {
+  flex: 1;
+}
+
+.child-details-notification {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid #e5eae7;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #45564c;
+
+  cursor: pointer;
+}
+
+.child-details-notification span {
+  position: absolute;
+
+  top: 9px;
+  right: 9px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #e75b4c;
+
+  border: 2px solid #ffffff;
+}
+
+
+/* USER */
+
+.child-details-user {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-left: 18px;
+}
+
+.child-details-user-avatar {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #d9f1e3;
+
+  color: #167c4c;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.child-details-user-info strong,
+.child-details-user-info small {
+  display: block;
+}
+
+.child-details-user-info strong {
+  font-size: 12px;
+}
+
+.child-details-user-info small {
+  margin-top: 2px;
+
+  color: #849188;
+
+  font-size: 10px;
+}
+
+.child-details-arrow {
+  color: #89948e;
+  font-size: 9px;
+}
+
+
+/* CONTENT */
+
+.child-details-content {
+  max-width: 1500px;
+
+  margin: 0 auto;
+
+  padding: 32px 38px;
+}
+
+
+/* BACK */
+
+.child-details-back {
+  display: inline-block;
+
+  margin-bottom: 22px;
+
+  color: #6d7b73;
+
+  text-decoration: none;
+
+  font-size: 11px;
+}
+
+.child-details-back:hover {
+  color: #167c4c;
+}
+
+
+/* PROFILE HEADER */
+
+.child-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 25px;
+}
+
+.child-profile-left {
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.child-profile-avatar {
+  width: 78px;
+  height: 78px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #dff1e7;
+
+  color: #167c4c;
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.child-profile-label {
+  color: #167c4c;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+}
+
+.child-profile-header h1 {
+  margin: 6px 0;
+
+  font-size: 29px;
+
+  letter-spacing: -0.8px;
+}
+
+.child-profile-header h1 span {
+  color: #167c4c;
+}
+
+.child-profile-header p {
+  margin: 0 0 4px;
+
+  color: #65736a;
+
+  font-size: 11px;
+}
+
+.child-profile-header small {
+  color: #929d96;
+
+  font-size: 9px;
+}
+
+
+/* EDIT */
+
+.child-edit-button {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border: 1px solid #d7e4db;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #167c4c;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* SUMMARY */
+
+.child-detail-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 15px;
+
+  margin-bottom: 22px;
+}
+
+.detail-summary-card {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 17px;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e9e6;
+
+  border-radius: 13px;
+}
+
+.detail-summary-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.detail-summary-icon.green {
+  background: #e6f5ec;
+  color: #16804d;
+}
+
+.detail-summary-icon.orange {
+  background: #fff1dc;
+  color: #d78320;
+}
+
+.detail-summary-icon.red {
+  background: #fdebea;
+  color: #d55d53;
+}
+
+.detail-summary-icon.blue {
+  background: #e9f1fb;
+  color: #3978b7;
+}
+
+.detail-summary-card strong,
+.detail-summary-card span {
+  display: block;
+}
+
+.detail-summary-card strong {
+  font-size: 19px;
+}
+
+.detail-summary-card span {
+  margin-top: 3px;
+
+  color: #849088;
+
+  font-size: 9px;
+}
+
+
+/* GRID */
+
+.child-details-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(280px, 0.8fr);
+
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+
+/* COMMON CARD */
+
+.vaccination-history-card,
+.next-vaccine-card,
+.overall-progress-card,
+.child-notes-card {
+  background: #ffffff;
+
+  border: 1px solid #e4e9e6;
+
+  border-radius: 14px;
+}
+
+
+/* HISTORY */
+
+.vaccination-history-card {
+  padding: 22px;
+}
+
+.detail-card-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  margin-bottom: 17px;
+}
+
+.detail-card-heading > div > span {
+  color: #167c4c;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.detail-card-heading h2 {
+  margin: 5px 0 0;
+
+  font-size: 17px;
+}
+
+.detail-card-heading button {
+  border: none;
+
+  background: transparent;
+
+  color: #167c4c;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* VACCINATION ITEM */
+
+.vaccination-item {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 0;
+
+  border-top: 1px solid #edf0ee;
+}
+
+.vaccination-status {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vaccination-status.completed {
+  background: #e5f5eb;
+  color: #16804d;
+}
+
+.vaccination-status.upcoming {
+  background: #fff1dc;
+  color: #d78320;
+}
+
+.vaccination-info {
+  flex: 1;
+}
+
+.vaccination-info strong,
+.vaccination-info span {
+  display: block;
+}
+
+.vaccination-info strong {
+  color: #29362e;
+
+  font-size: 11px;
+}
+
+.vaccination-info span {
+  margin-top: 3px;
+
+  color: #919b95;
+
+  font-size: 8px;
+}
+
+.vaccination-date {
+  text-align: right;
+}
+
+.vaccination-date strong {
+  display: block;
+
+  color: #56645b;
+
+  font-size: 9px;
+}
+
+.vaccination-date span {
+  display: inline-block;
+
+  margin-top: 4px;
+
+  padding: 3px 7px;
+
+  border-radius: 20px;
+
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.completed-text {
+  background: #e8f6ed;
+  color: #16804d;
+}
+
+.upcoming-text {
+  background: #fff2df;
+  color: #d78320;
+}
+
+
+/* NEXT VACCINE */
+
+.next-vaccine-card {
+  padding: 22px;
+
+  background: linear-gradient(
+    145deg,
+    #0d6b40,
+    #07512f
+  );
+
+  color: #ffffff;
+
+  border: none;
+}
+
+.next-vaccine-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.next-vaccine-heading > span {
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  color: #b6dec8;
+}
+
+.next-vaccine-big-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: rgba(255,255,255,0.12);
+
+  font-size: 18px;
+}
+
+.next-vaccine-card h2 {
+  margin: 20px 0 5px;
+
+  font-size: 25px;
+}
+
+.next-vaccine-card > p {
+  margin: 0;
+
+  color: #b8d5c5;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+.next-vaccine-date-box {
+  margin-top: 22px;
+
+  padding: 14px;
+
+  border-radius: 10px;
+
+  background: rgba(255,255,255,0.09);
+}
+
+.next-vaccine-date-box span,
+.next-vaccine-date-box strong,
+.next-vaccine-date-box small {
+  display: block;
+}
+
+.next-vaccine-date-box span {
+  color: #a9cdbc;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.next-vaccine-date-box strong {
+  margin-top: 6px;
+
+  font-size: 15px;
+}
+
+.next-vaccine-date-box small {
+  margin-top: 4px;
+
+  color: #acd0bd;
+
+  font-size: 8px;
+}
+
+.schedule-reminder-button {
+  width: 100%;
+
+  height: 38px;
+
+  margin-top: 14px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #12653c;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* PROGRESS */
+
+.overall-progress-card {
+  padding: 22px;
+
+  margin-bottom: 20px;
+}
+
+.overall-progress-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.overall-progress-header span {
+  color: #167c4c;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.overall-progress-header h2 {
+  margin: 5px 0 0;
+
+  font-size: 17px;
+}
+
+.overall-progress-header > strong {
+  color: #167c4c;
+
+  font-size: 20px;
+}
+
+.overall-progress-bar {
+  width: 100%;
+  height: 9px;
+
+  margin-top: 17px;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: #e8eeea;
+}
+
+.overall-progress-bar div {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #167c4c;
+}
+
+.overall-progress-bottom {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 7px;
+
+  color: #929c96;
+
+  font-size: 8px;
+}
+
+
+/* NOTES */
+
+.child-notes-card {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 18px 20px;
+}
+
+.notes-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background: #eef7f1;
+
+  color: #167c4c;
+}
+
+.child-notes-card span {
+  color: #167c4c;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.child-notes-card h3 {
+  margin: 4px 0;
+
+  font-size: 11px;
+}
+
+.child-notes-card p {
+  margin: 0;
+
+  color: #88948d;
+
+  font-size: 8px;
+}
+
+
+/* MOBILE MENU */
+
+.child-details-mobile-menu {
+  display: none;
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #f2f6f3;
+
+  color: #167c4c;
+
+  font-size: 18px;
+}
+
+
+/* MOBILE NAV */
+
+.child-details-mobile-nav {
+  display: none;
+}
+
+
+/* TABLET */
+
+@media (max-width: 1050px) {
+
+  .child-details-sidebar {
+    width: 220px;
+  }
+
+  .child-details-main {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+  }
+
+  .child-details-content {
+    padding: 28px;
+  }
+
+  .child-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 760px) {
+
+  .child-details-sidebar {
+    display: none;
+  }
+
+  .child-details-main {
+    width: 100%;
+    margin-left: 0;
+
+    padding-bottom: 75px;
+  }
+
+  .child-details-topbar {
+    height: 65px;
+
+    padding: 0 18px;
+  }
+
+  .child-details-mobile-menu {
+    display: block;
+  }
+
+  .child-details-user-info,
+  .child-details-arrow {
+    display: none;
+  }
+
+  .child-details-content {
+    padding: 22px 16px;
+  }
+
+  .child-profile-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .child-profile-left {
+    align-items: flex-start;
+  }
+
+  .child-profile-avatar {
+    width: 65px;
+    height: 65px;
+  }
+
+  .child-edit-button {
+    width: 100%;
+  }
+
+  .child-detail-summary {
+    grid-template-columns:
+      repeat(2, 1fr);
+
+    gap: 10px;
+  }
+
+  .child-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vaccination-history-card,
+  .next-vaccine-card {
+    padding: 18px;
+  }
+
+  .child-details-mobile-nav {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 68px;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(5, 1fr);
+
+    background: #ffffff;
+
+    border-top: 1px solid #e3e9e5;
+
+    z-index: 200;
+  }
+
+  .child-details-mobile-nav a {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    color: #87928b;
+
+    text-decoration: none;
+
+    font-size: 8px;
+  }
+
+  .child-details-mobile-nav a span {
+    font-size: 18px;
+  }
+
+  .child-details-mobile-nav a.active {
+    color: #167c4c;
+
+    font-weight: 700;
+  }
+
+}
+
+
+/* SMALL MOBILE */
+
+@media (max-width: 450px) {
+
+  .child-profile-header h1 {
+    font-size: 25px;
+  }
+
+  .child-profile-left {
+    gap: 13px;
+  }
+
+  .child-profile-avatar {
+    width: 58px;
+    height: 58px;
+
+    font-size: 16px;
+  }
+
+  .vaccination-item {
+    gap: 8px;
+  }
+
+  .vaccination-date strong {
+    font-size: 8px;
+  }
+
+  .overall-progress-bottom {
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .child-notes-card {
+    align-items: flex-start;
+  }
+
+}

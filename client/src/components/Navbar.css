@@ -1,0 +1,187 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-container {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
+
+.navbar-logo {
+  text-decoration: none;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary-dark);
+  letter-spacing: -1px;
+}
+
+.navbar-logo span {
+  color: var(--primary);
+}
+
+/* Navigation */
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-menu a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-menu a:hover {
+  color: var(--primary);
+}
+
+/* Desktop Login/Register */
+
+.desktop-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-login,
+.nav-register {
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 9px;
+  transition: all 0.2s ease;
+}
+
+.nav-login {
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  background: white;
+}
+
+.nav-login:hover {
+  background: var(--primary-light);
+}
+
+.nav-register {
+  color: white !important;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.nav-register:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Mobile Buttons */
+
+.mobile-nav-buttons {
+  display: none;
+}
+
+/* Hamburger */
+
+.menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 25px;
+  height: 2px;
+  margin: 5px auto;
+  background: var(--primary-dark);
+  transition: all 0.25s ease;
+}
+
+/* 
+   TABLET othoba MOBILE
+*/
+
+@media (max-width: 900px) {
+
+  .desktop-nav-buttons {
+    display: none;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: 76px;
+    left: 0;
+    width: 100%;
+
+    background: white;
+    border-bottom: 1px solid var(--border);
+
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 0;
+
+    padding: 15px 20px 25px;
+  }
+
+  .nav-menu.active {
+    display: flex;
+  }
+
+  .nav-menu > a {
+    padding: 14px 5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-nav-buttons {
+    display: flex;
+    gap: 10px;
+    padding-top: 18px;
+  }
+
+  .mobile-nav-buttons a {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* Small Mobile */
+
+@media (max-width: 480px) {
+
+  .navbar-container {
+    height: 68px;
+  }
+
+  .navbar-logo {
+    font-size: 23px;
+  }
+
+  .nav-menu {
+    top: 68px;
+  }
+}
