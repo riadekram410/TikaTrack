@@ -1,0 +1,884 @@
+/* =========================================
+   SETTINGS PAGE
+========================================= */
+
+.settings-page {
+  min-height: 100vh;
+  display: flex;
+
+  background: #f7f9f8;
+  color: #17211b;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.settings-sidebar {
+  width: 250px;
+
+  position: fixed;
+  inset: 0 auto 0 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 28px 16px;
+
+  background: linear-gradient(
+    180deg,
+    #064c2d,
+    #053b25
+  );
+
+  z-index: 100;
+}
+
+.settings-logo {
+  padding: 0 16px;
+
+  color: white;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  letter-spacing: -1px;
+}
+
+.settings-logo span {
+  color: #72d49b;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  margin-top: 55px;
+}
+
+.settings-nav a {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  color: #b9d2c5;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  transition: 0.2s;
+}
+
+.settings-nav a span {
+  width: 20px;
+
+  text-align: center;
+
+  font-size: 17px;
+}
+
+.settings-nav a:hover,
+.settings-nav a.active {
+  background: #167c4c;
+  color: white;
+}
+
+.settings-nav a.active {
+  font-weight: 600;
+}
+
+.settings-logout {
+  margin-top: auto;
+
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #b9d2c5;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+.settings-main {
+  width: calc(100% - 250px);
+
+  margin-left: 250px;
+
+  min-height: 100vh;
+}
+
+
+/* =========================================
+   TOPBAR
+========================================= */
+
+.settings-topbar {
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 38px;
+
+  background: white;
+
+  border-bottom: 1px solid #e6ebe8;
+}
+
+.settings-top-space {
+  flex: 1;
+}
+
+.settings-mobile-menu {
+  display: none;
+}
+
+.settings-notification {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid #e5eae7;
+
+  border-radius: 10px;
+
+  background: white;
+
+  color: #45564c;
+
+  cursor: pointer;
+}
+
+.settings-notification span {
+  position: absolute;
+
+  top: 9px;
+  right: 9px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #e75b4c;
+
+  border: 2px solid white;
+}
+
+.settings-user {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-left: 18px;
+}
+
+.settings-user-avatar {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #d9f1e3;
+
+  color: #167c4c;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.settings-user-info strong,
+.settings-user-info small {
+  display: block;
+}
+
+.settings-user-info strong {
+  font-size: 12px;
+}
+
+.settings-user-info small {
+  margin-top: 2px;
+
+  color: #849188;
+
+  font-size: 10px;
+}
+
+.settings-user-arrow {
+  color: #89948e;
+
+  font-size: 9px;
+}
+
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.settings-content {
+  max-width: 1500px;
+
+  margin: auto;
+
+  padding: 34px 38px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.settings-page-header {
+  margin-bottom: 25px;
+}
+
+.settings-label {
+  color: #167c4c;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+}
+
+.settings-page-header h1 {
+  margin: 6px 0;
+
+  font-size: 29px;
+
+  letter-spacing: -0.8px;
+}
+
+.settings-page-header p {
+  margin: 0;
+
+  color: #78847c;
+
+  font-size: 11px;
+}
+
+
+/* =========================================
+   CARD
+========================================= */
+
+.settings-card {
+  margin-bottom: 18px;
+
+  padding: 22px;
+
+  border: 1px solid #e4e9e6;
+
+  border-radius: 14px;
+
+  background: white;
+}
+
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.settings-section-heading {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 14px;
+
+  margin-bottom: 20px;
+}
+
+.settings-section-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background: #e5f3e9;
+
+  color: #167c4c;
+
+  font-size: 16px;
+}
+
+.settings-section-heading span {
+  color: #167c4c;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.settings-section-heading h2 {
+  margin: 5px 0;
+
+  font-size: 17px;
+}
+
+.settings-section-heading p {
+  margin: 0;
+
+  color: #89958e;
+
+  font-size: 8px;
+}
+
+
+/* =========================================
+   OPTIONS
+========================================= */
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-option,
+.settings-toggle-row {
+  min-height: 65px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 12px 0;
+
+  border-top: 1px solid #edf0ee;
+}
+
+.option-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: #f1f6f3;
+
+  color: #167c4c;
+
+  font-size: 14px;
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-content strong,
+.option-content span {
+  display: block;
+}
+
+.option-content strong {
+  color: #2d3932;
+
+  font-size: 10px;
+}
+
+.option-content span {
+  margin-top: 4px;
+
+  color: #89958e;
+
+  font-size: 8px;
+}
+
+.settings-action {
+  padding: 8px 13px;
+
+  border: 1px solid #d5e2da;
+
+  border-radius: 7px;
+
+  background: white;
+
+  color: #167c4c;
+
+  font-size: 8px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   TOGGLE
+========================================= */
+
+.toggle {
+  width: 40px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 3px;
+
+  border: none;
+
+  border-radius: 20px;
+
+  background: #cbd5cf;
+
+  cursor: pointer;
+}
+
+.toggle.on {
+  justify-content: flex-end;
+
+  background: #167c4c;
+}
+
+.toggle div {
+  width: 16px;
+  height: 16px;
+
+  border-radius: 50%;
+
+  background: white;
+}
+
+
+/* =========================================
+   REMINDER PREFERENCE
+========================================= */
+
+.reminder-preference {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding-top: 15px;
+
+  border-top: 1px solid #edf0ee;
+}
+
+.reminder-preference label {
+  color: #4d5b52;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.reminder-preference select {
+  min-width: 160px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #dfe6e2;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #4f5d54;
+
+  font-family: inherit;
+
+  font-size: 8px;
+
+  outline: none;
+}
+
+
+/* =========================================
+   PRIVACY
+========================================= */
+
+.privacy-options {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 12px;
+
+  padding-top: 15px;
+
+  border-top: 1px solid #edf0ee;
+}
+
+.privacy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 13px;
+
+  border: 1px solid #e1e8e4;
+
+  border-radius: 9px;
+
+  background: #fbfcfb;
+
+  color: #4d5b52;
+
+  font-size: 9px;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.privacy-btn span {
+  color: #167c4c;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   DANGER ZONE
+========================================= */
+
+.danger-card {
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  border-color: #f1d9d6;
+
+  background: #fffafa;
+}
+
+.danger-content {
+  flex: 1;
+}
+
+.danger-content > span {
+  color: #c85c52;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.danger-content h2 {
+  margin: 5px 0;
+
+  color: #563d3a;
+
+  font-size: 14px;
+}
+
+.danger-content p {
+  margin: 0;
+
+  color: #927b78;
+
+  font-size: 8px;
+}
+
+.delete-account-btn {
+  padding: 10px 14px;
+
+  border: 1px solid #e6bdb9;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #c05249;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/*  ayan schedule css   */
+
+
+/* =========================================
+   LAST UPDATED
+========================================= */
+
+.settings-last-updated {
+  margin-top: 4px;
+
+  color: #9aa49e;
+
+  text-align: right;
+
+  font-size: 7px;
+}
+
+
+/* =========================================
+   MOBILE NAV
+========================================= */
+
+.settings-mobile-nav {
+  display: none;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1050px) {
+
+  .settings-sidebar {
+    width: 220px;
+  }
+
+  .settings-main {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+  }
+
+  .settings-content {
+    padding: 28px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+
+  .settings-sidebar {
+    display: none;
+  }
+
+  .settings-main {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding-bottom: 78px;
+  }
+
+  .settings-topbar {
+    height: 65px;
+
+    padding: 0 18px;
+  }
+
+  .settings-mobile-menu {
+    display: block;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #f2f6f3;
+
+    color: #167c4c;
+
+    font-size: 17px;
+  }
+
+  .settings-user-info,
+  .settings-user-arrow {
+    display: none;
+  }
+
+  .settings-content {
+    padding: 22px 16px;
+  }
+
+  .settings-page-header h1 {
+    font-size: 26px;
+  }
+
+  .settings-card {
+    padding: 17px;
+  }
+
+  .settings-section-heading {
+    gap: 11px;
+  }
+
+  .settings-section-heading h2 {
+    font-size: 15px;
+  }
+
+  .settings-option,
+  .settings-toggle-row {
+    align-items: flex-start;
+
+    padding: 14px 0;
+  }
+
+  .settings-action {
+    padding: 7px 10px;
+  }
+
+  .reminder-preference {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .reminder-preference select {
+    width: 100%;
+  }
+
+  .privacy-options {
+    grid-template-columns: 1fr;
+  }
+
+  .danger-card {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .delete-account-btn {
+    width: 100%;
+  }
+
+
+  /* MOBILE BOTTOM NAV */
+
+  .settings-mobile-nav {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 68px;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(7, 1fr);
+
+    background: white;
+
+    border-top: 1px solid #e3e9e5;
+
+    z-index: 200;
+  }
+
+  .settings-mobile-nav a {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    color: #87928b;
+
+    text-decoration: none;
+
+    font-size: 7px;
+
+    white-space: nowrap;
+  }
+
+  .settings-mobile-nav a span {
+    font-size: 16px;
+
+    line-height: 1;
+  }
+
+  .settings-mobile-nav a.active {
+    color: #167c4c;
+
+    font-weight: 700;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 450px) {
+
+  .settings-section-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .option-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .option-content strong {
+    font-size: 9px;
+  }
+
+  .option-content span {
+    font-size: 7px;
+  }
+
+  .settings-mobile-nav {
+    height: 65px;
+  }
+
+  .settings-mobile-nav a {
+    font-size: 6px;
+  }
+
+  .settings-mobile-nav a span {
+    font-size: 14px;
+  }
+
+}
