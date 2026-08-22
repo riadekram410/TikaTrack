@@ -282,7 +282,7 @@ function Schedule() {
 
           </section>
 
-  {/* NEXT VACCINE for children */}
+
           {/* NEXT VACCINE */}
           <section className="schedule-next">
 
