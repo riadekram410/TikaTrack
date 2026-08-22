@@ -1,0 +1,960 @@
+/* =========================================
+   REPORTS PAGE
+========================================= */
+
+.reports-page {
+  min-height: 100vh;
+  display: flex;
+
+  background: #f7f9f8;
+  color: #17211b;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.reports-sidebar {
+  width: 250px;
+
+  position: fixed;
+  inset: 0 auto 0 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 28px 16px;
+
+  background: linear-gradient(
+    180deg,
+    #064c2d,
+    #053b25
+  );
+
+  z-index: 100;
+}
+
+.reports-logo {
+  padding: 0 16px;
+
+  color: white;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  letter-spacing: -1px;
+}
+
+.reports-logo span {
+  color: #72d49b;
+}
+
+.reports-nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  margin-top: 55px;
+}
+
+.reports-nav a {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  color: #b9d2c5;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  transition: 0.2s;
+}
+
+.reports-nav a span {
+  width: 20px;
+
+  text-align: center;
+
+  font-size: 17px;
+}
+
+.reports-nav a:hover,
+.reports-nav a.active {
+  background: #167c4c;
+  color: white;
+}
+
+.reports-nav a.active {
+  font-weight: 600;
+}
+
+.reports-logout {
+  margin-top: auto;
+
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 16px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #b9d2c5;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+.reports-main {
+  width: calc(100% - 250px);
+
+  margin-left: 250px;
+
+  min-height: 100vh;
+}
+
+
+/* =========================================
+   TOPBAR
+========================================= */
+
+.reports-topbar {
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 38px;
+
+  background: white;
+
+  border-bottom: 1px solid #e6ebe8;
+}
+
+.reports-top-space {
+  flex: 1;
+}
+
+.reports-mobile-menu {
+  display: none;
+}
+
+.reports-notification {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid #e5eae7;
+
+  border-radius: 10px;
+
+  background: white;
+
+  color: #45564c;
+
+  cursor: pointer;
+}
+
+.reports-notification span {
+  position: absolute;
+
+  top: 9px;
+  right: 9px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #e75b4c;
+
+  border: 2px solid white;
+}
+
+.reports-user {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-left: 18px;
+}
+
+.reports-user-avatar {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #d9f1e3;
+
+  color: #167c4c;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reports-user-info strong,
+.reports-user-info small {
+  display: block;
+}
+
+.reports-user-info strong {
+  font-size: 12px;
+}
+
+.reports-user-info small {
+  margin-top: 2px;
+
+  color: #849188;
+
+  font-size: 10px;
+}
+
+.reports-user-arrow {
+  color: #89948e;
+  font-size: 9px;
+}
+
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.reports-content {
+  max-width: 1500px;
+
+  margin: auto;
+
+  padding: 34px 38px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.reports-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 25px;
+}
+
+.reports-label {
+  color: #167c4c;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+}
+
+.reports-page-header h1 {
+  margin: 6px 0;
+
+  font-size: 29px;
+
+  letter-spacing: -0.8px;
+}
+
+.reports-page-header h1 span {
+  color: #167c4c;
+}
+
+.reports-page-header p {
+  margin: 0;
+
+  color: #78847c;
+
+  font-size: 11px;
+}
+
+.download-report-btn {
+  padding: 11px 16px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: #167c4c;
+
+  color: white;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   GENERAL CARD
+========================================= */
+
+.reports-card {
+  margin-bottom: 18px;
+
+  padding: 22px;
+
+  border: 1px solid #e4e9e6;
+
+  border-radius: 14px;
+
+  background: white;
+}
+
+
+/* =========================================
+   CHILD HEADER
+========================================= */
+
+.child-report-header {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+.child-report-avatar {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #e4f3e9;
+
+  color: #167c4c;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.child-report-info {
+  flex: 1;
+}
+
+.child-report-info span {
+  color: #89958e;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.child-report-info h2 {
+  margin: 4px 0;
+
+  font-size: 17px;
+}
+
+.child-report-info p {
+  margin: 0;
+
+  color: #89958e;
+
+  font-size: 8px;
+}
+
+.child-select,
+.report-filter {
+  padding: 9px 12px;
+
+  border: 1px solid #dfe6e2;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #4f5d54;
+
+  font-family: inherit;
+
+  font-size: 8px;
+
+  outline: none;
+}
+
+
+/* =========================================
+   SUMMARY
+========================================= */
+
+.report-summary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+.report-summary-card {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 18px;
+
+  border: 1px solid #e4e9e6;
+
+  border-radius: 13px;
+
+  background: white;
+}
+
+.summary-icon {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.summary-icon.green {
+  background: #e2f3e8;
+  color: #167c4c;
+}
+
+.summary-icon.blue {
+  background: #e8f1f7;
+  color: #4c7892;
+}
+
+.summary-icon.orange {
+  background: #fff0db;
+  color: #c47a1c;
+}
+
+.summary-icon.red {
+  background: #fde9e7;
+  color: #c75b52;
+}
+
+.report-summary-card span {
+  display: block;
+
+  color: #8a958f;
+
+  font-size: 6px;
+  font-weight: 700;
+
+  letter-spacing: 0.8px;
+}
+
+.report-summary-card strong {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 21px;
+}
+
+.report-summary-card p {
+  margin: 2px 0 0;
+
+  color: #8a958f;
+
+  font-size: 7px;
+}
+
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.report-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+}
+
+.report-section-heading span {
+  color: #167c4c;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.report-section-heading h2 {
+  margin: 5px 0 0;
+
+  font-size: 17px;
+}
+
+
+/* =========================================
+   PROGRESS
+========================================= */
+
+.progress-percentage {
+  color: #167c4c;
+
+  font-size: 24px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+
+  overflow: hidden;
+
+  border-radius: 10px;
+
+  background: #e8efeb;
+}
+
+.progress-fill {
+  width: 67%;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #167c4c;
+}
+
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 8px;
+
+  color: #89958e;
+
+  font-size: 7px;
+}
+
+
+/* =========================================
+   VACCINATION TABLE
+========================================= */
+
+.vaccination-table {
+  width: 100%;
+}
+
+.vaccination-row {
+  display: grid;
+
+  grid-template-columns:
+    2fr 1fr 1.2fr 0.9fr;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 14px 0;
+
+  border-bottom: 1px solid #edf0ee;
+
+  color: #647168;
+
+  font-size: 8px;
+}
+
+.vaccination-row:last-child {
+  border-bottom: none;
+}
+
+.table-header {
+  padding-top: 0;
+
+  color: #89958e;
+
+  font-size: 6px;
+  font-weight: 700;
+
+  letter-spacing: 0.8px;
+}
+
+.vaccine-name {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.vaccine-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  font-weight: 700;
+}
+
+.vaccine-icon.green {
+  background: #e4f3e9;
+  color: #167c4c;
+}
+
+.vaccine-icon.orange {
+  background: #fff0db;
+  color: #c47a1c;
+}
+
+.vaccine-icon.blue {
+  background: #e8f1f7;
+  color: #4c7892;
+}
+
+.vaccine-name strong,
+.vaccine-name small {
+  display: block;
+}
+
+.vaccine-name strong {
+  color: #26342c;
+
+  font-size: 9px;
+}
+
+.vaccine-name small {
+  margin-top: 3px;
+
+  color: #89958e;
+
+  font-size: 7px;
+}
+
+.status {
+  width: fit-content;
+
+  padding: 5px 8px;
+
+  border-radius: 20px;
+
+  font-size: 6px;
+  font-weight: 600;
+}
+
+.status.completed {
+  background: #e4f3e9;
+  color: #167c4c;
+}
+
+.status.due {
+  background: #fff0db;
+  color: #bd731a;
+}
+
+.status.upcoming {
+  background: #e8f1f7;
+  color: #4c7892;
+}
+
+
+/* =========================================
+   LAST UPDATED
+========================================= */
+
+.report-last-updated {
+  margin-top: 4px;
+
+  color: #9aa49e;
+
+  text-align: right;
+
+  font-size: 7px;
+}
+
+
+/* =========================================
+   MOBILE NAV
+========================================= */
+
+.reports-mobile-nav {
+  display: none;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1050px) {
+
+  .reports-sidebar {
+    width: 220px;
+  }
+
+  .reports-main {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+  }
+
+  .reports-content {
+    padding: 28px;
+  }
+
+  .report-summary-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+
+  .reports-sidebar {
+    display: none;
+  }
+
+  .reports-main {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding-bottom: 78px;
+  }
+
+  .reports-topbar {
+    height: 65px;
+
+    padding: 0 18px;
+  }
+
+  .reports-mobile-menu {
+    display: block;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #f2f6f3;
+
+    color: #167c4c;
+
+    font-size: 17px;
+  }
+
+  .reports-user-info,
+  .reports-user-arrow {
+    display: none;
+  }
+
+  .reports-content {
+    padding: 22px 16px;
+  }
+
+  .reports-page-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .reports-page-header h1 {
+    font-size: 26px;
+  }
+
+  .download-report-btn {
+    width: 100%;
+  }
+
+  .child-report-header {
+    align-items: flex-start;
+
+    flex-wrap: wrap;
+  }
+
+  .child-select {
+    width: 100%;
+  }
+
+  .report-summary-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+
+    gap: 10px;
+  }
+
+  .report-summary-card {
+    padding: 14px;
+
+    gap: 9px;
+  }
+
+  .summary-icon {
+    width: 37px;
+    height: 37px;
+
+    font-size: 14px;
+  }
+
+  .report-summary-card strong {
+    font-size: 18px;
+  }
+
+  .report-section-heading {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .report-filter {
+    width: 100%;
+  }
+
+  .vaccination-table {
+    overflow-x: auto;
+  }
+
+  .vaccination-row {
+    min-width: 600px;
+  }
+
+
+  /* MOBILE BOTTOM NAV */
+
+  .reports-mobile-nav {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 68px;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(7, 1fr);
+
+    background: white;
+
+    border-top: 1px solid #e3e9e5;
+
+    z-index: 200;
+  }
+
+  .reports-mobile-nav a {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    color: #87928b;
+
+    text-decoration: none;
+
+    font-size: 7px;
+
+    white-space: nowrap;
+  }
+
+  .reports-mobile-nav a span {
+    font-size: 16px;
+
+    line-height: 1;
+  }
+
+  .reports-mobile-nav a.active {
+    color: #167c4c;
+
+    font-weight: 700;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 450px) {
+
+  .reports-card {
+    padding: 17px;
+  }
+
+  .report-summary-card {
+    padding: 12px;
+  }
+
+  .report-summary-card p {
+    display: none;
+  }
+
+  .reports-mobile-nav {
+    height: 65px;
+  }
+
+  .reports-mobile-nav a {
+    font-size: 6px;
+  }
+
+  .reports-mobile-nav a span {
+    font-size: 14px;
+  }
+
+}
