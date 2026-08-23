@@ -1,32 +1,10 @@
-import { useState } from "react";
 import "./profile.css";
 
 function Profile() {
-  const [editing, setEditing] = useState(false);
-
-  const [profile, setProfile] = useState({
-    firstName: "Farzana",
-    lastName: "Akter",
-    email: "farzana@example.com",
-    phone: "+880 1712-345678",
-    address: "Dhaka, Bangladesh",
-  });
-
-  const handleChange = (e) => {
-    setProfile({
-      ...profile,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSave = () => {
-    setEditing(false);
-  };
-
   return (
     <div className="profile-page">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* SIDEBAR */}
       <aside className="profile-sidebar">
 
         <div className="profile-logo">
@@ -80,7 +58,7 @@ function Profile() {
       </aside>
 
 
-      {/* ================= MAIN ================= */}
+      {/* MAIN */}
       <main className="profile-main">
 
         {/* TOPBAR */}
@@ -117,7 +95,7 @@ function Profile() {
         </header>
 
 
-        {/* ================= CONTENT ================= */}
+        {/* CONTENT */}
         <div className="profile-content">
 
           {/* PAGE HEADER */}
@@ -137,14 +115,9 @@ function Profile() {
               </p>
             </div>
 
-            {!editing && (
-              <button
-                className="edit-profile-btn"
-                onClick={() => setEditing(true)}
-              >
-                ✎ Edit Profile
-              </button>
-            )}
+            <button className="edit-profile-btn">
+              ✎ Edit Profile
+            </button>
 
           </div>
 
@@ -163,11 +136,11 @@ function Profile() {
               </span>
 
               <h2>
-                {profile.firstName} {profile.lastName}
+                Farzana Akter
               </h2>
 
               <p>
-                {profile.email}
+                farzana@example.com
               </p>
 
               <div className="profile-member">
@@ -206,14 +179,9 @@ function Profile() {
                 </h2>
               </div>
 
-              {!editing && (
-                <button
-                  className="small-edit-btn"
-                  onClick={() => setEditing(true)}
-                >
-                  Edit
-                </button>
-              )}
+              <button className="small-edit-btn">
+                Edit
+              </button>
 
             </div>
 
@@ -221,91 +189,80 @@ function Profile() {
             <div className="profile-form-grid">
 
               <div className="profile-field">
-                <label>First Name</label>
+
+                <label>
+                  First Name
+                </label>
 
                 <input
                   type="text"
-                  name="firstName"
-                  value={profile.firstName}
-                  onChange={handleChange}
-                  disabled={!editing}
+                  value="Farzana"
+                  disabled
                 />
+
               </div>
 
 
               <div className="profile-field">
-                <label>Last Name</label>
+
+                <label>
+                  Last Name
+                </label>
 
                 <input
                   type="text"
-                  name="lastName"
-                  value={profile.lastName}
-                  onChange={handleChange}
-                  disabled={!editing}
+                  value="Akter"
+                  disabled
                 />
+
               </div>
 
 
               <div className="profile-field">
-                <label>Email Address</label>
+
+                <label>
+                  Email Address
+                </label>
 
                 <input
                   type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleChange}
-                  disabled={!editing}
+                  value="farzana@example.com"
+                  disabled
                 />
+
               </div>
 
 
               <div className="profile-field">
-                <label>Phone Number</label>
+
+                <label>
+                  Phone Number
+                </label>
 
                 <input
                   type="text"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleChange}
-                  disabled={!editing}
+                  value="+880 1712-346799"
+                  disabled
                 />
+
               </div>
 
 
               <div className="profile-field full-field">
-                <label>Address</label>
+
+                <label>
+                  Address
+                </label>
 
                 <input
                   type="text"
-                  name="address"
-                  value={profile.address}
-                  onChange={handleChange}
-                  disabled={!editing}
+                  value="Dhaka, Bangladesh"
+                  disabled
                 />
+
               </div>
 
             </div>
-
-
-            {editing && (
-              <div className="profile-form-actions">
-
-                <button
-                  className="cancel-btn"
-                  onClick={() => setEditing(false)}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  className="save-profile-btn"
-                  onClick={handleSave}
-                >
-                  ✓ Save Changes
-                </button>
-
-              </div>
-            )}
 
           </section>
 
@@ -320,9 +277,13 @@ function Profile() {
               </div>
 
               <div>
-                <span>REGISTERED CHILDREN</span>
+                <span>
+                  REGISTERED CHILDREN
+                </span>
 
-                <strong>2</strong>
+                <strong>
+                  2
+                </strong>
 
                 <p>
                   Children in your account
@@ -343,9 +304,13 @@ function Profile() {
               </div>
 
               <div>
-                <span>VACCINATIONS</span>
+                <span>
+                  VACCINATIONS
+                </span>
 
-                <strong>18</strong>
+                <strong>
+                  18
+                </strong>
 
                 <p>
                   Vaccinations tracked
@@ -366,9 +331,13 @@ function Profile() {
               </div>
 
               <div>
-                <span>REMINDERS</span>
+                <span>
+                  REMINDERS
+                </span>
 
-                <strong>4</strong>
+                <strong>
+                  4
+                </strong>
 
                 <p>
                   Upcoming reminders
@@ -448,7 +417,7 @@ function Profile() {
       </main>
 
 
-      {/* ================= MOBILE NAV ================= */}
+      {/* MOBILE NAV */}
       <nav className="profile-mobile-nav">
 
         <a href="/dashboard">

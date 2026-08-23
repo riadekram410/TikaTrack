@@ -1,10 +1,6 @@
-import { useState } from "react";
 import "./schedule.css";
 
 function Schedule() {
-  const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
-
   const vaccines = [
     {
       name: "BCG",
@@ -70,29 +66,6 @@ function Schedule() {
       status: "Upcoming",
     },
   ];
-
-  const filteredVaccines = vaccines.filter((vaccine) => {
-    const matchesFilter =
-      filter === "All" || vaccine.status === filter;
-
-    const matchesSearch =
-      vaccine.name
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      vaccine.description
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    return matchesFilter && matchesSearch;
-  });
-
-  const completedCount = vaccines.filter(
-    (v) => v.status === "Completed"
-  ).length;
-
-  const upcomingCount = vaccines.filter(
-    (v) => v.status === "Upcoming"
-  ).length;
 
   return (
     <div className="schedule-page">
@@ -209,6 +182,7 @@ function Schedule() {
             </div>
 
             <button className="schedule-child-selector">
+
               <span>👶</span>
 
               <div>
@@ -217,6 +191,7 @@ function Schedule() {
               </div>
 
               <b>▼</b>
+
             </button>
 
           </div>
@@ -232,7 +207,7 @@ function Schedule() {
               </div>
 
               <div>
-                <strong>{vaccines.length}</strong>
+                <strong>9</strong>
                 <span>Total Vaccines</span>
               </div>
 
@@ -246,7 +221,7 @@ function Schedule() {
               </div>
 
               <div>
-                <strong>{completedCount}</strong>
+                <strong>4</strong>
                 <span>Completed</span>
               </div>
 
@@ -260,7 +235,7 @@ function Schedule() {
               </div>
 
               <div>
-                <strong>{upcomingCount}</strong>
+                <strong>5</strong>
                 <span>Upcoming</span>
               </div>
 
@@ -331,6 +306,7 @@ function Schedule() {
             <div className="schedule-table-header">
 
               <div>
+
                 <span>
                   ALL VACCINATIONS
                 </span>
@@ -338,8 +314,11 @@ function Schedule() {
                 <h2>
                   Vaccination Timeline
                 </h2>
+
               </div>
 
+
+              {/* SEARCH - STATIC */}
               <div className="schedule-search">
 
                 <span>⌕</span>
@@ -347,10 +326,6 @@ function Schedule() {
                 <input
                   type="text"
                   placeholder="Search vaccine..."
-                  value={search}
-                  onChange={(e) =>
-                    setSearch(e.target.value)
-                  }
                 />
 
               </div>
@@ -358,26 +333,24 @@ function Schedule() {
             </div>
 
 
-            {/* FILTERS */}
+            {/* FILTERS - STATIC */}
             <div className="schedule-filters">
 
-              {["All", "Completed", "Upcoming", "Overdue"].map(
-                (item) => (
+              <button className="active">
+                All
+              </button>
 
-                  <button
-                    key={item}
-                    className={
-                      filter === item
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() => setFilter(item)}
-                  >
-                    {item}
-                  </button>
+              <button>
+                Completed
+              </button>
 
-                )
-              )}
+              <button>
+                Upcoming
+              </button>
+
+              <button>
+                Overdue
+              </button>
 
             </div>
 
@@ -388,6 +361,7 @@ function Schedule() {
               <table className="schedule-table">
 
                 <thead>
+
                   <tr>
                     <th>VACCINE</th>
                     <th>DOSE</th>
@@ -395,86 +369,95 @@ function Schedule() {
                     <th>STATUS</th>
                     <th>ACTION</th>
                   </tr>
+
                 </thead>
+
 
                 <tbody>
 
-                  {filteredVaccines.map(
-                    (vaccine, index) => (
+                  {vaccines.map((vaccine, index) => (
 
-                      <tr key={index}>
+                    <tr key={index}>
 
-                        <td>
+                      <td>
 
-                          <div className="table-vaccine">
+                        <div className="table-vaccine">
 
-                            <div
-                              className={`table-vaccine-icon ${
-                                vaccine.status ===
-                                "Completed"
-                                  ? "green"
-                                  : "orange"
-                              }`}
-                            >
-                              💉
-                            </div>
+                          <div
+                            className={`table-vaccine-icon ${
+                              vaccine.status === "Completed"
+                                ? "green"
+                                : "orange"
+                            }`}
+                          >
+                            💉
+                          </div>
 
-                            <div>
-                              <strong>
-                                {vaccine.name}
-                              </strong>
+                          <div>
 
-                              <span>
-                                {vaccine.description}
-                              </span>
-                            </div>
+                            <strong>
+                              {vaccine.name}
+                            </strong>
+
+                            <span>
+                              {vaccine.description}
+                            </span>
 
                           </div>
 
-                        </td>
+                        </div>
 
-                        <td>
-                          <span className="dose-text">
-                            {vaccine.dose}
-                          </span>
-                        </td>
+                      </td>
 
-                        <td>
-                          <span className="date-text">
-                            {vaccine.date}
-                          </span>
-                        </td>
 
-                        <td>
+                      <td>
 
-                          <span
-                            className={`schedule-status ${
-                              vaccine.status
-                                .toLowerCase()
-                            }`}
-                          >
-                            {vaccine.status ===
-                            "Completed"
-                              ? "✓ "
-                              : "◷ "}
+                        <span className="dose-text">
+                          {vaccine.dose}
+                        </span>
 
-                            {vaccine.status}
-                          </span>
+                      </td>
 
-                        </td>
 
-                        <td>
+                      <td>
 
-                          <button className="table-action">
-                            View
-                          </button>
+                        <span className="date-text">
+                          {vaccine.date}
+                        </span>
 
-                        </td>
+                      </td>
 
-                      </tr>
 
-                    )
-                  )}
+                      <td>
+
+                        <span
+                          className={`schedule-status ${
+                            vaccine.status.toLowerCase()
+                          }`}
+                        >
+
+                          {vaccine.status === "Completed"
+                            ? "✓ "
+                            : "◷ "}
+
+                          {vaccine.status}
+
+                        </span>
+
+                      </td>
+
+
+                      <td>
+
+                        <button className="table-action">
+                          View
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  ))}
 
                 </tbody>
 
@@ -486,86 +469,83 @@ function Schedule() {
             {/* MOBILE CARDS */}
             <div className="schedule-mobile-list">
 
-              {filteredVaccines.map(
-                (vaccine, index) => (
+              {vaccines.map((vaccine, index) => (
 
-                  <div
-                    className="schedule-mobile-card"
-                    key={index}
-                  >
+                <div
+                  className="schedule-mobile-card"
+                  key={index}
+                >
 
-                    <div className="mobile-vaccine-top">
+                  <div className="mobile-vaccine-top">
 
-                      <div
-                        className={`table-vaccine-icon ${
-                          vaccine.status ===
-                          "Completed"
-                            ? "green"
-                            : "orange"
-                        }`}
-                      >
-                        💉
-                      </div>
-
-                      <div>
-
-                        <strong>
-                          {vaccine.name}
-                        </strong>
-
-                        <span>
-                          {vaccine.description}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    <div className="mobile-vaccine-details">
-
-                      <div>
-                        <small>DOSE</small>
-                        <strong>
-                          {vaccine.dose}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <small>DUE DATE</small>
-                        <strong>
-                          {vaccine.date}
-                        </strong>
-                      </div>
-
-                    </div>
-
-                    <span
-                      className={`schedule-status ${
-                        vaccine.status.toLowerCase()
+                    <div
+                      className={`table-vaccine-icon ${
+                        vaccine.status === "Completed"
+                          ? "green"
+                          : "orange"
                       }`}
                     >
-                      {vaccine.status}
-                    </span>
+                      💉
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        {vaccine.name}
+                      </strong>
+
+                      <span>
+                        {vaccine.description}
+                      </span>
+
+                    </div>
 
                   </div>
 
-                )
-              )}
+
+                  <div className="mobile-vaccine-details">
+
+                    <div>
+
+                      <small>
+                        DOSE
+                      </small>
+
+                      <strong>
+                        {vaccine.dose}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <small>
+                        DUE DATE
+                      </small>
+
+                      <strong>
+                        {vaccine.date}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+
+                  <span
+                    className={`schedule-status ${
+                      vaccine.status.toLowerCase()
+                    }`}
+                  >
+                    {vaccine.status}
+                  </span>
+
+                </div>
+
+              ))}
 
             </div>
-
-
-            {filteredVaccines.length === 0 && (
-
-              <div className="schedule-empty">
-                <span>🔎</span>
-                <h3>No vaccines found</h3>
-                <p>
-                  Try another search or filter.
-                </p>
-              </div>
-
-            )}
 
           </section>
 
