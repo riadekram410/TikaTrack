@@ -13,6 +13,9 @@ import Reminders from "./pages/reminders/reminders";
 import Profile from "./pages/profile/profile";
 import Reports from "./pages/reports/reports";
 import Settings from "./pages/settings/settings";
+
+import ProtectedRoute from "./ProtectedRoute";
+
 function App() {
   return (
     <BrowserRouter>
@@ -28,24 +31,79 @@ function App() {
           path="/forgot-password"
           element={<ForgotPassword />}
         />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/children" element={<Children />} />
-      <Route
-  path="/child-details"
-  element={<ChildDetails />}
-/>
 
-<Route path="/schedule" element={<Schedule />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-<Route path="/reminders" element={<Reminders />} />
+        <Route
+          path="/children"
+          element={
+            <ProtectedRoute>
+              <Children />
+            </ProtectedRoute>
+          }
+        />
 
-  <Route path="/profile" element={<Profile />} />   
-      
-   <Route path="/reports" element={<Reports />} />   
-      
-   <Route path="/settings" element={<Settings />} />   
-   
-      
+        <Route
+          path="/child-details"
+          element={
+            <ProtectedRoute>
+              <ChildDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute>
+              <Schedule />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reminders"
+          element={
+            <ProtectedRoute>
+              <Reminders />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );
