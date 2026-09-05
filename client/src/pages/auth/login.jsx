@@ -1,15 +1,61 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./login.css";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Backend connect করার পরে এখানে API call হবে
-    console.log("Login submitted");
+    setError("");
+    setLoading(true);
+
+    try {
+      const isEmail = emailOrPhone.includes("@");
+
+      const loginData = {
+        password,
+        ...(isEmail
+          ? { email: emailOrPhone }
+          : { phone: emailOrPhone }),
+      };
+
+      const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(loginData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        return;
+      }
+
+      console.log("Login successful:", data.user);
+
+      // Go to dashboard after successful login
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Unable to connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,6 +149,8 @@ function Login() {
                 id="email"
                 name="email"
                 placeholder="Enter email or phone number"
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
                 required
               />
 
@@ -131,6 +179,8 @@ function Login() {
                   id="password"
                   name="password"
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
 
@@ -169,12 +219,21 @@ function Login() {
             </div>
 
 
+            {/* Error Message */}
+            {error && (
+              <div className="login-error">
+                {error}
+              </div>
+            )}
+
+
             {/* Login Button */}
             <button
               type="submit"
               className="login-submit-button"
+              disabled={loading}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
 
           </form>
