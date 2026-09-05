@@ -1,35 +1,212 @@
+import { useEffect, useState } from "react";
 import "./children.css";
 
-
 function Children() {
-  const children = [
-    {
-      id: 1,
-      initials: "AR",
-      name: "Ahnaf Rahman",
-      gender: "Male",
-      age: "1 Year 2 Months",
-      dob: "12 March 2024",
-      progress: 60,
-      completed: 3,
-      total: 5,
-      nextVaccine: "Penta-1",
-      nextDate: "20 May 2025",
-    },
-    {
-      id: 2,
-      initials: "SA",
-      name: "Sara Akter",
-      gender: "Female",
-      age: "8 Months",
-      dob: "05 July 2024",
-      progress: 45,
-      completed: 4,
-      total: 9,
-      nextVaccine: "PCV-2",
-      nextDate: "25 May 2025",
-    },
-  ];
+  const [children, setChildren] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Add Child form states
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const [formData, setFormData] = useState({
+    name: "",
+    dateOfBirth: "",
+    gender: "",
+    bloodGroup: "",
+    guardian: "",
+  });
+
+  // ================= FETCH CHILDREN =================
+  const fetchChildren = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        "http://localhost:5000/api/children",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to load children");
+        return;
+      }
+
+      setChildren(data.children || []);
+    } catch (err) {
+      console.error("Error fetching children:", err);
+      setError("Unable to connect to server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchChildren();
+  }, []);
+
+  // ================= FORM HANDLERS =================
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previousData) => ({
+      ...previousData,
+      [name]: value,
+    }));
+  };
+
+  const openAddForm = () => {
+    setFormError("");
+
+    setFormData({
+      name: "",
+      dateOfBirth: "",
+      gender: "",
+      bloodGroup: "",
+      guardian: "",
+    });
+
+    setShowAddForm(true);
+  };
+
+  const closeAddForm = () => {
+    if (formLoading) return;
+
+    setShowAddForm(false);
+    setFormError("");
+  };
+
+  // ================= CREATE CHILD =================
+
+  const handleAddChild = async (event) => {
+    event.preventDefault();
+
+    setFormError("");
+
+    if (
+      !formData.name ||
+      !formData.dateOfBirth ||
+      !formData.gender ||
+      !formData.guardian
+    ) {
+      setFormError(
+        "Name, date of birth, gender and guardian are required."
+      );
+      return;
+    }
+
+    try {
+      setFormLoading(true);
+
+      const response = await fetch(
+        "http://localhost:5000/api/children",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.error || "Failed to add child");
+        return;
+      }
+
+      // Close form
+      setShowAddForm(false);
+
+      // Reset form
+      setFormData({
+        name: "",
+        dateOfBirth: "",
+        gender: "",
+        bloodGroup: "",
+        guardian: "",
+      });
+
+      // Refresh children list
+      await fetchChildren();
+    } catch (err) {
+      console.error("Error adding child:", err);
+      setFormError("Unable to connect to server");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // ================= HELPERS =================
+
+  const getInitials = (name) => {
+    if (!name) return "CH";
+
+    const words = name.trim().split(" ");
+
+    if (words.length === 1) {
+      return words[0].substring(0, 2).toUpperCase();
+    }
+
+    return (
+      words[0].charAt(0) +
+      words[words.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "Not available";
+
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return "Age unavailable";
+
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+
+    let years = today.getFullYear() - dob.getFullYear();
+    let months = today.getMonth() - dob.getMonth();
+
+    if (
+      today.getDate() < dob.getDate()
+    ) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years > 0) {
+      return `${years} Year${
+        years > 1 ? "s" : ""
+      } ${months} Month${
+        months !== 1 ? "s" : ""
+      }`;
+    }
+
+    return `${months} Month${
+      months !== 1 ? "s" : ""
+    }`;
+  };
 
   return (
     <div className="children-page">
@@ -43,7 +220,10 @@ function Children() {
 
         <nav className="children-sidebar-nav">
 
-          <a href="/dashboard" className="children-sidebar-link">
+          <a
+            href="/dashboard"
+            className="children-sidebar-link"
+          >
             <span>⌂</span>
             Dashboard
           </a>
@@ -56,37 +236,47 @@ function Children() {
             Children
           </a>
 
-          <a href="/schedule" className="children-sidebar-link">
+          <a
+            href="/schedule"
+            className="children-sidebar-link"
+          >
             <span>▣</span>
             Schedule
           </a>
 
-          <a href="/reminders" className="children-sidebar-link">
+          <a
+            href="/reminders"
+            className="children-sidebar-link"
+          >
             <span>♧</span>
             Reminders
           </a>
 
-          <a href="/reports" className="children-sidebar-link">
+          <a
+            href="/reports"
+            className="children-sidebar-link"
+          >
             <span>▥</span>
             Reports
           </a>
 
-          <a href="/profile" className="children-sidebar-link">
+          <a
+            href="/profile"
+            className="children-sidebar-link"
+          >
             <span>◉</span>
             Profile
           </a>
 
-          <a href="/settings" className="children-sidebar-link">
+          <a
+            href="/settings"
+            className="children-sidebar-link"
+          >
             <span>⚙</span>
             Settings
           </a>
 
         </nav>
-
-        <button className="children-logout">
-          <span>↪</span>
-          Logout
-        </button>
 
       </aside>
 
@@ -107,11 +297,11 @@ function Children() {
           <div className="children-user">
 
             <div className="children-user-avatar">
-              F
+              G
             </div>
 
             <div className="children-user-info">
-              <strong>Farzana Akter</strong>
+              <strong>Guardian</strong>
               <small>Guardian</small>
             </div>
 
@@ -145,7 +335,10 @@ function Children() {
               </p>
             </div>
 
-            <button className="children-add-button">
+            <button
+              className="children-add-button"
+              onClick={openAddForm}
+            >
               <span>+</span>
               Add Child
             </button>
@@ -163,8 +356,13 @@ function Children() {
               </div>
 
               <div>
-                <strong>2</strong>
-                <span>Registered Children</span>
+                <strong>
+                  {children.length}
+                </strong>
+
+                <span>
+                  Registered Children
+                </span>
               </div>
 
             </div>
@@ -177,8 +375,11 @@ function Children() {
               </div>
 
               <div>
-                <strong>7</strong>
-                <span>Completed Vaccinations</span>
+                <strong>0</strong>
+
+                <span>
+                  Completed Vaccinations
+                </span>
               </div>
 
             </div>
@@ -191,8 +392,11 @@ function Children() {
               </div>
 
               <div>
-                <strong>2</strong>
-                <span>Upcoming Vaccinations</span>
+                <strong>0</strong>
+
+                <span>
+                  Upcoming Vaccinations
+                </span>
               </div>
 
             </div>
@@ -222,131 +426,168 @@ function Children() {
             </div>
 
 
-            <div className="children-cards">
-
-              {children.map((child) => (
-
-                <article
-                  className="child-profile-card"
-                  key={child.id}
-                >
-
-                  {/* CARD TOP */}
-                  <div className="child-card-top">
-
-                    <div className="child-large-avatar">
-                      {child.initials}
-                    </div>
-
-                    <div className="child-main-info">
-
-                      <h3>
-                        {child.name}
-                      </h3>
-
-                      <p>
-                        {child.gender} · {child.age}
-                      </p>
-
-                      <span>
-                        Date of Birth: {child.dob}
-                      </span>
-
-                    </div>
-
-                    <button className="child-menu">
-                      ⋮
-                    </button>
-
-                  </div>
+            {/* LOADING */}
+            {loading && (
+              <p>
+                Loading children...
+              </p>
+            )}
 
 
-                  {/* PROGRESS */}
-                  <div className="child-progress-section">
-
-                    <div className="child-progress-header">
-
-                      <span>
-                        Vaccination Progress
-                      </span>
-
-                      <strong>
-                        {child.progress}%
-                      </strong>
-
-                    </div>
-
-                    <div className="child-progress-bar">
-
-                      <div
-                        style={{
-                          width: `${child.progress}%`,
-                        }}
-                      ></div>
-
-                    </div>
-
-                    <p>
-                      {child.completed} of {child.total} vaccinations
-                      completed
-                    </p>
-
-                  </div>
+            {/* ERROR */}
+            {!loading && error && (
+              <p>
+                {error}
+              </p>
+            )}
 
 
-                  {/* NEXT VACCINE */}
-                  <div className="next-vaccine">
-
-                    <div className="next-vaccine-icon">
-                      💉
-                    </div>
-
-                    <div className="next-vaccine-info">
-
-                      <span>
-                        NEXT VACCINATION
-                      </span>
-
-                      <strong>
-                        {child.nextVaccine}
-                      </strong>
-
-                    </div>
-
-                    <div className="next-vaccine-date">
-
-                      <strong>
-                        {child.nextDate}
-                      </strong>
-
-                      <span>
-                        Upcoming
-                      </span>
-
-                    </div>
-
-                  </div>
+            {/* NO CHILDREN */}
+            {!loading &&
+              !error &&
+              children.length === 0 && (
+                <p>
+                  No children registered yet.
+                </p>
+              )}
 
 
-                  {/* ACTIONS */}
-                  <div className="child-card-actions">
+            {/* CHILDREN CARDS */}
+            {!loading &&
+              !error &&
+              children.length > 0 && (
+                <div className="children-cards">
 
-                    <button className="view-child-button">
-                      View Details
-                      <span>→</span>
-                    </button>
+                  {children.map((child) => (
 
-                    <button className="edit-child-button">
-                      Edit Profile
-                    </button>
+                    <article
+                      className="child-profile-card"
+                      key={child._id}
+                    >
 
-                  </div>
+                      {/* CARD TOP */}
+                      <div className="child-card-top">
 
-                </article>
+                        <div className="child-large-avatar">
+                          {getInitials(child.name)}
+                        </div>
 
-              ))}
+                        <div className="child-main-info">
 
-            </div>
+                          <h3>
+                            {child.name}
+                          </h3>
+
+                          <p>
+                            {child.gender} ·{" "}
+                            {calculateAge(
+                              child.dateOfBirth
+                            )}
+                          </p>
+
+                          <span>
+                            Date of Birth:{" "}
+                            {formatDate(
+                              child.dateOfBirth
+                            )}
+                          </span>
+
+                        </div>
+
+                        <button className="child-menu">
+                          ⋮
+                        </button>
+
+                      </div>
+
+
+                      {/* PROGRESS */}
+                      <div className="child-progress-section">
+
+                        <div className="child-progress-header">
+
+                          <span>
+                            Vaccination Progress
+                          </span>
+
+                          <strong>
+                            0%
+                          </strong>
+
+                        </div>
+
+                        <div className="child-progress-bar">
+
+                          <div
+                            style={{
+                              width: "0%",
+                            }}
+                          ></div>
+
+                        </div>
+
+                        <p>
+                          0 of 0 vaccinations
+                          completed
+                        </p>
+
+                      </div>
+
+
+                      {/* NEXT VACCINE */}
+                      <div className="next-vaccine">
+
+                        <div className="next-vaccine-icon">
+                          💉
+                        </div>
+
+                        <div className="next-vaccine-info">
+
+                          <span>
+                            NEXT VACCINATION
+                          </span>
+
+                          <strong>
+                            Not scheduled
+                          </strong>
+
+                        </div>
+
+                        <div className="next-vaccine-date">
+
+                          <strong>
+                            —
+                          </strong>
+
+                          <span>
+                            Upcoming
+                          </span>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* ACTIONS */}
+                      <div className="child-card-actions">
+
+                        <button className="view-child-button">
+                          View Details
+                          <span>→</span>
+                        </button>
+
+                        <button className="edit-child-button">
+                          Edit Profile
+                        </button>
+
+                      </div>
+
+                    </article>
+
+                  ))}
+
+                </div>
+              )}
 
           </section>
 
@@ -375,7 +616,10 @@ function Children() {
 
             </div>
 
-            <button className="add-child-outline-button">
+            <button
+              className="add-child-outline-button"
+              onClick={openAddForm}
+            >
               Add Child
             </button>
 
@@ -394,7 +638,10 @@ function Children() {
           Dashboard
         </a>
 
-        <a href="/children" className="active">
+        <a
+          href="/children"
+          className="active"
+        >
           <span>♙</span>
           Children
         </a>
@@ -415,6 +662,232 @@ function Children() {
         </a>
 
       </nav>
+
+
+      {/* ================= ADD CHILD MODAL ================= */}
+      {showAddForm && (
+        <div
+          className="add-child-modal-overlay"
+          onClick={closeAddForm}
+        >
+
+          <div
+            className="add-child-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+            <div className="add-child-modal-header">
+
+              <div>
+                <span>
+                  FAMILY
+                </span>
+
+                <h2>
+                  Add Child
+                </h2>
+
+                <p>
+                  Enter your child's information
+                  below.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="add-child-modal-close"
+                onClick={closeAddForm}
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            <form onSubmit={handleAddChild}>
+
+              <div className="add-child-form-group">
+
+                <label>
+                  Child Name
+                </label>
+
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter child's name"
+                />
+
+              </div>
+
+
+              <div className="add-child-form-row">
+
+                <div className="add-child-form-group">
+
+                  <label>
+                    Date of Birth
+                  </label>
+
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                  />
+
+                </div>
+
+
+                <div className="add-child-form-group">
+
+                  <label>
+                    Gender
+                  </label>
+
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">
+                      Select gender
+                    </option>
+
+                    <option value="Male">
+                      Male
+                    </option>
+
+                    <option value="Female">
+                      Female
+                    </option>
+
+                    <option value="Other">
+                      Other
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+
+              <div className="add-child-form-row">
+
+                <div className="add-child-form-group">
+
+                  <label>
+                    Blood Group
+                  </label>
+
+                  <select
+                    name="bloodGroup"
+                    value={formData.bloodGroup}
+                    onChange={handleInputChange}
+                  >
+
+                    <option value="">
+                      Select blood group
+                    </option>
+
+                    <option value="A+">
+                      A+
+                    </option>
+
+                    <option value="A-">
+                      A-
+                    </option>
+
+                    <option value="B+">
+                      B+
+                    </option>
+
+                    <option value="B-">
+                      B-
+                    </option>
+
+                    <option value="AB+">
+                      AB+
+                    </option>
+
+                    <option value="AB-">
+                      AB-
+                    </option>
+
+                    <option value="O+">
+                      O+
+                    </option>
+
+                    <option value="O-">
+                      O-
+                    </option>
+
+                  </select>
+
+                </div>
+
+
+                <div className="add-child-form-group">
+
+                  <label>
+                    Guardian
+                  </label>
+
+                  <input
+                    type="text"
+                    name="guardian"
+                    value={formData.guardian}
+                    onChange={handleInputChange}
+                    placeholder="Guardian name"
+                  />
+
+                </div>
+
+              </div>
+
+
+              {/* FORM ERROR */}
+              {formError && (
+                <p className="add-child-form-error">
+                  {formError}
+                </p>
+              )}
+
+
+              <div className="add-child-form-actions">
+
+                <button
+                  type="button"
+                  className="add-child-cancel-button"
+                  onClick={closeAddForm}
+                  disabled={formLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="add-child-save-button"
+                  disabled={formLoading}
+                >
+                  {formLoading
+                    ? "Saving..."
+                    : "Save Child"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );

@@ -72,10 +72,7 @@ function Profile() {
 
         </nav>
 
-        <button className="profile-logout">
-          <span>↪</span>
-          Logout
-        </button>
+        
 
       </aside>
 

@@ -143,10 +143,7 @@ function Schedule() {
 
         </nav>
 
-        <button className="schedule-logout">
-          <span>↪</span>
-          Logout
-        </button>
+        
 
       </aside>
 
