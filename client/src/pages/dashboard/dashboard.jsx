@@ -1,8 +1,36 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/users/profile",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setUser(data.user);
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -136,11 +164,11 @@ function Dashboard() {
           <div className="user-profile">
 
             <div className="user-avatar">
-              F
+              {user?.name?.charAt(0).toUpperCase() || "G"}
             </div>
 
             <div className="user-info">
-              <strong>Farzana Akter</strong>
+              <strong>{user?.name || "Guardian"}</strong>
               <span>Guardian</span>
             </div>
 
@@ -165,7 +193,7 @@ function Dashboard() {
               </span>
 
               <h1>
-                Welcome back, <span>Farzana!</span>
+                Welcome back, <span>{user?.name || "Guardian"}!</span>
               </h1>
 
               <p>
