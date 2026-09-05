@@ -133,13 +133,7 @@ function Dashboard() {
 
         </nav>
 
-        <button
-          className="sidebar-logout"
-          onClick={handleLogout}
-        >
-          <span>↪</span>
-          Logout
-        </button>
+        
 
       </aside>
 

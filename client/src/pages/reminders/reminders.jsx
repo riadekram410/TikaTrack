@@ -120,10 +120,7 @@ function Reminders() {
 
         </nav>
 
-        <button className="reminders-logout">
-          <span>↪</span>
-          Logout
-        </button>
+       
 
       </aside>
 

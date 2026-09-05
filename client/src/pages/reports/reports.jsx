@@ -50,10 +50,7 @@ function Reports() {
 
         </nav>
 
-        <button className="reports-logout">
-          <span>↪</span>
-          Logout
-        </button>
+        
 
       </aside>
 

@@ -110,40 +110,10 @@
 }
 
 
-/* =========================================
-   LOGOUT
-========================================= */
 
-.sidebar-logout {
-  margin-top: auto;
 
-  min-height: 46px;
 
-  display: flex;
-  align-items: center;
 
-  gap: 13px;
-
-  padding: 0 16px;
-
-  border: none;
-  border-radius: 10px;
-
-  background: transparent;
-
-  color: #b9d2c5;
-
-  font-size: 13px;
-
-  cursor: pointer;
-
-  text-align: left;
-}
-
-.sidebar-logout:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
 
 
 /* =========================================

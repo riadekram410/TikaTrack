@@ -1470,3 +1470,182 @@
 .children-mobile-drawer {
   display: none !important;
 }
+/* ================= ADD CHILD MODAL ================= */
+
+.add-child-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.add-child-modal {
+  width: 100%;
+  max-width: 620px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.add-child-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.add-child-modal-header span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #16834f;
+}
+
+.add-child-modal-header h2 {
+  margin: 5px 0 5px;
+  font-size: 26px;
+  color: #1f2937;
+}
+
+.add-child-modal-header p {
+  margin: 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.add-child-modal-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.add-child-modal-close:hover {
+  background: #e2e8f0;
+}
+
+.add-child-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+  flex: 1;
+}
+
+.add-child-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.add-child-form-group input,
+.add-child-form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border: 1px solid #dbe3e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-child-form-group input:focus,
+.add-child-form-group select:focus {
+  border-color: #16834f;
+  box-shadow: 0 0 0 3px rgba(22, 131, 79, 0.1);
+}
+
+.add-child-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.add-child-form-error {
+  margin: 2px 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.add-child-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.add-child-cancel-button,
+.add-child-save-button {
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-child-cancel-button {
+  border: 1px solid #dbe3e8;
+  background: #ffffff;
+  color: #475569;
+}
+
+.add-child-cancel-button:hover {
+  background: #f8fafc;
+}
+
+.add-child-save-button {
+  border: none;
+  background: #16834f;
+  color: #ffffff;
+}
+
+.add-child-save-button:hover {
+  background: #116b40;
+}
+
+.add-child-cancel-button:disabled,
+.add-child-save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 600px) {
+  .add-child-modal {
+    padding: 22px;
+  }
+
+  .add-child-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .add-child-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .add-child-cancel-button,
+  .add-child-save-button {
+    width: 100%;
+  }
+}

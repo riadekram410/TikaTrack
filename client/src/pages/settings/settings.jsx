@@ -1,10 +1,38 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./settings.css";
 
 function Settings() {
+  const navigate = useNavigate();
+
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [vaccinationReminders, setVaccinationReminders] = useState(true);
   const [overdueAlerts, setOverdueAlerts] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Logout failed:", data.error);
+        return;
+      }
+
+      console.log(data.message);
+
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
 
   return (
     <div className="settings-page">
@@ -55,7 +83,10 @@ function Settings() {
 
         </nav>
 
-        <button className="settings-logout">
+        <button
+          className="settings-logout"
+          onClick={handleLogout}
+        >
           <span>↪</span>
           Logout
         </button>
@@ -68,8 +99,6 @@ function Settings() {
 
         {/* TOPBAR */}
         <header className="settings-topbar">
-
-          
 
           <div className="settings-top-space"></div>
 
