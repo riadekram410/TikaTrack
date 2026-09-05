@@ -1,16 +1,69 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./register.css";
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Backend connect করার পরে এখানে API call হবে
-    console.log("Registration submitted");
+    setError("");
+
+    // Check password match
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/users",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: fullName,
+            email,
+            phone,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Registration failed");
+        return;
+      }
+
+      console.log("Registration successful:", data.user);
+
+      // Go to login page after successful registration
+      navigate("/login");
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Unable to connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -111,6 +164,8 @@ function Register() {
                 id="fullName"
                 name="fullName"
                 placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 required
               />
 
@@ -129,6 +184,8 @@ function Register() {
                 id="email"
                 name="email"
                 placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
@@ -147,6 +204,8 @@ function Register() {
                 id="phone"
                 name="phone"
                 placeholder="Enter your phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 required
               />
 
@@ -167,6 +226,8 @@ function Register() {
                   id="password"
                   name="password"
                   placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
 
@@ -203,6 +264,10 @@ function Register() {
                   id="confirmPassword"
                   name="confirmPassword"
                   placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(e.target.value)
+                  }
                   required
                 />
 
@@ -245,12 +310,21 @@ function Register() {
             </label>
 
 
+            {/* Error Message */}
+            {error && (
+              <div className="register-error">
+                {error}
+              </div>
+            )}
+
+
             {/* Submit */}
             <button
               type="submit"
               className="register-submit-button"
+              disabled={loading}
             >
-              Create Account
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
 
           </form>

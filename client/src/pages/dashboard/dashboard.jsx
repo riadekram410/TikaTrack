@@ -1,6 +1,34 @@
+import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
 function Dashboard() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Logout failed:", data.error);
+        return;
+      }
+
+      console.log(data.message);
+
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
   const upcomingVaccinations = [
     {
       vaccine: "BCG",
@@ -77,7 +105,10 @@ function Dashboard() {
 
         </nav>
 
-        <button className="sidebar-logout">
+        <button
+          className="sidebar-logout"
+          onClick={handleLogout}
+        >
           <span>↪</span>
           Logout
         </button>
