@@ -5,38 +5,53 @@ function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/users/profile",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        if (response.ok) {
-          setAuthenticated(true);
-        } else {
-          setAuthenticated(false);
+  const checkAuthentication = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/users/profile",
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
         }
-      } catch (error) {
-        console.error("Authentication check failed:", error);
+      );
+
+      if (response.ok) {
+        setAuthenticated(true);
+      } else {
         setAuthenticated(false);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Authentication check failed:", error);
+      setAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthentication();
+
+    const handlePageShow = () => {
+      checkAuthentication();
     };
 
-    checkAuthentication();
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, []);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  return authenticated ? children : <Navigate to="/login" replace />;
+  if (!authenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
 
 export default ProtectedRoute;

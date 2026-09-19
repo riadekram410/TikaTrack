@@ -28,7 +28,7 @@ function Settings() {
 
       console.log(data.message);
 
-      navigate("/login");
+     navigate("/login", { replace: true });
     } catch (err) {
       console.error("Logout error:", err);
     }

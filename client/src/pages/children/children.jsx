@@ -29,7 +29,7 @@ function Children() {
         "http://localhost:5000/api/children",
         {
           method: "GET",
-          credentials: "include",
+          //credentials: "include",
         }
       );
 
