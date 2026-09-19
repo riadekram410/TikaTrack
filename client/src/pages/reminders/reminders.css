@@ -1142,3 +1142,12 @@
   }
 
 }
+.reminder-icon.overdue {
+  background: #fde9e7;
+  color: #c75b52;
+}
+
+.reminder-status.overdue {
+  background: #fde9e7;
+  color: #c75b52;
+}

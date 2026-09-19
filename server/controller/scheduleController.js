@@ -1,5 +1,59 @@
 import Schedule from "../model/schedule.js";
 import Child from "../model/child.js";
+import { generateVaccineSchedule } from "../utils/vaccineSchedule.js";
+
+export const generateSchedulesForExistingChildren = async (req, res) => {
+    try {
+        const children = await Child.find({
+            userId: req.user.id,
+        });
+
+        if (children.length === 0) {
+            return res.status(404).json({
+                error: "No children found",
+            });
+        }
+
+        let createdCount = 0;
+        let skippedCount = 0;
+
+        for (const child of children) {
+            const existingSchedules = await Schedule.countDocuments({
+                childId: child._id,
+            });
+
+            if (existingSchedules > 0) {
+                skippedCount++;
+                continue;
+            }
+
+            const vaccineSchedule = generateVaccineSchedule(
+                child.dateOfBirth,
+                child._id
+            );
+
+            await Schedule.insertMany(vaccineSchedule);
+
+            createdCount += vaccineSchedule.length;
+        }
+
+        return res.status(201).json({
+            message: "Vaccine schedules generated successfully",
+            childrenProcessed: children.length,
+            schedulesCreated: createdCount,
+            childrenSkipped: skippedCount,
+        });
+
+    } catch (err) {
+        console.log(
+            `Error generating existing schedules: ${err}`
+        );
+
+        return res.status(500).json({
+            error: "Server error",
+        });
+    }
+};
 
 export const createSchedule = async (req, res) => {
     try {

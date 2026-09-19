@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./schedule.css";
 
 const API = "http://localhost:5000/api";
@@ -58,16 +58,36 @@ function VaccineInfo({ vaccine }) {
   );
 }
 
+function Summary({ icon, className, value, label }) {
+  return (
+    <div className="schedule-summary-card">
+      <div className={`schedule-summary-icon ${className}`}>
+        {icon}
+      </div>
+
+      <div>
+        <strong>{value}</strong>
+        <span>{label}</span>
+      </div>
+    </div>
+  );
+}
+
 function Schedule() {
   const [user, setUser] = useState(null);
   const [children, setChildren] = useState([]);
   const [vaccines, setVaccines] = useState([]);
+
+  const [selectedChildId, setSelectedChildId] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -91,22 +111,33 @@ function Schedule() {
         const childData = await childrenRes.json();
         const scheduleData = await scheduleRes.json();
 
-        if (!profileRes.ok)
-          throw new Error(profile.error || "Failed to load profile");
+        if (!profileRes.ok) {
+          throw new Error(
+            profile.error || "Failed to load profile"
+          );
+        }
 
-        if (!childrenRes.ok)
+        if (!childrenRes.ok) {
           throw new Error(
             childData.error || "Failed to load children"
           );
+        }
 
-        if (!scheduleRes.ok)
+        if (!scheduleRes.ok) {
           throw new Error(
             scheduleData.error || "Failed to load schedules"
           );
+        }
+
+        const loadedChildren = childData.children || [];
 
         setUser(profile.user);
-        setChildren(childData.children || []);
+        setChildren(loadedChildren);
         setVaccines(scheduleData.schedules || []);
+
+        if (loadedChildren.length) {
+          setSelectedChildId(loadedChildren[0]._id);
+        }
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -118,7 +149,30 @@ function Schedule() {
     loadData();
   }, []);
 
-  const selectedChild = children[0];
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  const selectedChild = children.find(
+    (child) => String(child._id) === String(selectedChildId)
+  );
 
   const childVaccines = selectedChild
     ? vaccines.filter(
@@ -129,36 +183,50 @@ function Schedule() {
     : [];
 
   const completed = childVaccines.filter(
-    (v) => v.status === "Completed"
+    (vaccine) => vaccine.status === "Completed"
   ).length;
 
   const upcoming = childVaccines.filter(
-    (v) => v.status === "Upcoming"
+    (vaccine) => vaccine.status === "Upcoming"
   ).length;
 
   const progress = childVaccines.length
-    ? Math.round((completed / childVaccines.length) * 100)
+    ? Math.round(
+        (completed / childVaccines.length) * 100
+      )
     : 0;
 
   const nextVaccine = [...childVaccines]
-    .filter((v) => v.status === "Upcoming")
+    .filter((vaccine) => vaccine.status === "Upcoming")
     .sort(
       (a, b) =>
         new Date(a.date) - new Date(b.date)
     )[0];
 
-  const filteredVaccines = childVaccines.filter((vaccine) => {
-    const matchesFilter =
-      filter === "All" || vaccine.status === filter;
+  const filteredVaccines = childVaccines.filter(
+    (vaccine) => {
+      const matchesFilter =
+        filter === "All" ||
+        vaccine.status === filter;
 
-    const text =
-      `${vaccine.name} ${vaccine.description}`.toLowerCase();
+      const text =
+        `${vaccine.name} ${vaccine.description}`.toLowerCase();
 
-    return (
-      matchesFilter &&
-      text.includes(search.toLowerCase())
-    );
-  });
+      return (
+        matchesFilter &&
+        text.includes(search.toLowerCase())
+      );
+    }
+  );
+
+  const handleChildSelect = (childId) => {
+    setSelectedChildId(childId);
+    setDropdownOpen(false);
+
+    // Reset filters when changing child
+    setFilter("All");
+    setSearch("");
+  };
 
   return (
     <div className="schedule-page">
@@ -174,7 +242,9 @@ function Schedule() {
             <a
               key={path}
               href={path}
-              className={path === "/schedule" ? "active" : ""}
+              className={
+                path === "/schedule" ? "active" : ""
+              }
             >
               <span>{icon}</span>
               {name}
@@ -183,13 +253,14 @@ function Schedule() {
         </nav>
       </aside>
 
-
       {/* MAIN */}
       <main className="schedule-main">
 
         {/* TOPBAR */}
         <header className="schedule-topbar">
-          
+          <button className="schedule-mobile-menu">
+            ☰
+          </button>
 
           <div className="schedule-top-space" />
 
@@ -214,7 +285,6 @@ function Schedule() {
           </div>
         </header>
 
-
         {/* CONTENT */}
         <div className="schedule-content">
 
@@ -234,20 +304,66 @@ function Schedule() {
               </p>
             </div>
 
-            <button className="schedule-child-selector">
-              <span>👶</span>
+            {/* CHILD SELECTOR */}
+            <div
+              className="schedule-child-dropdown"
+              ref={dropdownRef}
+            >
+              <button
+                className="schedule-child-selector"
+                onClick={() =>
+                  setDropdownOpen(!dropdownOpen)
+                }
+              >
+                <span>👶</span>
 
-              <div>
-                <small>CHILD</small>
-                <strong>
-                  {selectedChild?.name || "No child added"}
-                </strong>
-              </div>
+                <div>
+                  <small>CHILD</small>
 
-              <b>▼</b>
-            </button>
+                  <strong>
+                    {selectedChild?.name ||
+                      "No child added"}
+                  </strong>
+                </div>
+
+                <b>▼</b>
+              </button>
+
+              {dropdownOpen && children.length > 0 && (
+                <div className="schedule-child-options">
+                  {children.map((child) => (
+                    <button
+                      key={child._id}
+                      className={
+                        String(child._id) ===
+                        String(selectedChildId)
+                          ? "selected"
+                          : ""
+                      }
+                      onClick={() =>
+                        handleChildSelect(child._id)
+                      }
+                    >
+                      <span>👶</span>
+
+                      <div>
+                        <strong>{child.name}</strong>
+                        <small>
+                          {child.gender} •{" "}
+                          {child.bloodGroup || "N/A"}
+                        </small>
+                      </div>
+
+                      {String(child._id) ===
+                        String(selectedChildId) && (
+                        <b>✓</b>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-
 
           {/* LOADING */}
           {loading && (
@@ -256,7 +372,6 @@ function Schedule() {
               <p>Please wait...</p>
             </div>
           )}
-
 
           {/* ERROR */}
           {!loading && error && (
@@ -267,11 +382,9 @@ function Schedule() {
             </div>
           )}
 
-
           {/* DATA */}
           {!loading && !error && (
             <>
-
               {/* SUMMARY */}
               <section className="schedule-summary">
 
@@ -316,7 +429,6 @@ function Schedule() {
 
               </section>
 
-
               {/* NEXT VACCINATION */}
               <section className="schedule-next">
 
@@ -360,7 +472,6 @@ function Schedule() {
 
               </section>
 
-
               {/* TABLE */}
               <section className="schedule-table-card">
 
@@ -386,7 +497,6 @@ function Schedule() {
 
                 </div>
 
-
                 {/* FILTERS */}
                 <div className="schedule-filters">
                   {filters.map((item) => (
@@ -401,7 +511,6 @@ function Schedule() {
                     </button>
                   ))}
                 </div>
-
 
                 {/* DESKTOP */}
                 <div className="schedule-table-wrapper">
@@ -423,7 +532,9 @@ function Schedule() {
                         <tr key={vaccine._id}>
 
                           <td>
-                            <VaccineInfo vaccine={vaccine} />
+                            <VaccineInfo
+                              vaccine={vaccine}
+                            />
                           </td>
 
                           <td>
@@ -458,7 +569,6 @@ function Schedule() {
 
                 </div>
 
-
                 {/* MOBILE */}
                 <div className="schedule-mobile-list">
 
@@ -469,7 +579,9 @@ function Schedule() {
                     >
 
                       <div className="mobile-vaccine-top">
-                        <VaccineInfo vaccine={vaccine} />
+                        <VaccineInfo
+                          vaccine={vaccine}
+                        />
                       </div>
 
                       <div className="mobile-vaccine-details">
@@ -499,7 +611,6 @@ function Schedule() {
 
                 </div>
 
-
                 {/* EMPTY */}
                 {!filteredVaccines.length && (
                   <div className="schedule-empty">
@@ -512,13 +623,11 @@ function Schedule() {
                 )}
 
               </section>
-
             </>
           )}
 
         </div>
       </main>
-
 
       {/* MOBILE NAV */}
       <nav className="schedule-mobile-nav">
@@ -546,23 +655,6 @@ function Schedule() {
           ))}
       </nav>
 
-    </div>
-  );
-}
-
-function Summary({ icon, className, value, label }) {
-  return (
-    <div className="schedule-summary-card">
-      <div
-        className={`schedule-summary-icon ${className}`}
-      >
-        {icon}
-      </div>
-
-      <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
-      </div>
     </div>
   );
 }

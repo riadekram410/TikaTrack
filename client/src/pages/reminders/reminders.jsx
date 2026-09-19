@@ -1,75 +1,206 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import "./reminders.css";
+
+const API = "http://localhost:5000/api";
 
 function Reminders() {
   const [filter, setFilter] = useState("All");
+  const [children, setChildren] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [user, setUser] = useState(null);
+  const [selectedChildId, setSelectedChildId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const reminders = [
-    {
-      vaccine: "Penta-2",
-      description: "Second dose of Pentavalent Vaccine",
-      child: "Ahnaf Rahman",
-      date: "20 May 2024",
-      time: "10:00 AM",
-      status: "Due Soon",
-      icon: "💉",
-    },
-    {
-      vaccine: "PCV-2",
-      description: "Second dose of Pneumococcal Vaccine",
-      child: "Ahnaf Rahman",
-      date: "25 May 2024",
-      time: "10:00 AM",
-      status: "Upcoming",
-      icon: "💉",
-    },
-    {
-      vaccine: "OPV-1",
-      description: "Second dose of Oral Polio Vaccine",
-      child: "Ahnaf Rahman",
-      date: "25 May 2024",
-      time: "10:00 AM",
-      status: "Upcoming",
-      icon: "💉",
-    },
-    {
-      vaccine: "Penta-3",
-      description: "Third dose of Pentavalent Vaccine",
-      child: "Ahnaf Rahman",
-      date: "20 June 2024",
-      time: "10:00 AM",
-      status: "Upcoming",
-      icon: "💉",
-    },
-    {
-      vaccine: "BCG",
-      description: "Bacillus Calmette–Guérin Vaccine",
-      child: "Ahnaf Rahman",
-      date: "12 March 2024",
-      time: "10:00 AM",
-      status: "Completed",
-      icon: "✓",
-    },
-  ];
+  useEffect(() => {
+    const loadReminders = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const [profileResponse, childrenResponse, schedulesResponse] =
+          await Promise.all([
+            fetch(`${API}/users/profile`, {
+              credentials: "include",
+            }),
+
+            fetch(`${API}/children`, {
+              credentials: "include",
+            }),
+
+            fetch(`${API}/schedules`, {
+              credentials: "include",
+            }),
+          ]);
+
+        if (!profileResponse.ok) {
+          throw new Error("Failed to load profile");
+        }
+
+        if (!childrenResponse.ok) {
+          throw new Error("Failed to load children");
+        }
+
+        if (!schedulesResponse.ok) {
+          throw new Error("Failed to load reminders");
+        }
+
+        const profileData = await profileResponse.json();
+        const childData = await childrenResponse.json();
+        const scheduleData = await schedulesResponse.json();
+
+        const loadedChildren = childData.children || [];
+        const loadedSchedules = scheduleData.schedules || [];
+
+        setUser(profileData.user);
+        setChildren(loadedChildren);
+        setReminders(loadedSchedules);
+
+        if (loadedChildren.length > 0) {
+          setSelectedChildId(loadedChildren[0]._id);
+        }
+      } catch (err) {
+        console.error("Error loading reminders:", err);
+        setError("Unable to load reminders.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReminders();
+  }, []);
+
+  const selectedChild = children.find(
+    (child) => String(child._id) === String(selectedChildId)
+  );
+
+  const childReminders = selectedChild
+    ? reminders.filter(
+        (reminder) =>
+          String(reminder.childId?._id || reminder.childId) ===
+          String(selectedChild._id)
+      )
+    : [];
+
+  const getReminderStatus = (reminder) => {
+    if (reminder.status === "Completed") {
+      return "Completed";
+    }
+
+    const vaccineDate = new Date(reminder.date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    vaccineDate.setHours(0, 0, 0, 0);
+
+    const difference =
+      (vaccineDate - today) / (1000 * 60 * 60 * 24);
+
+    if (difference < 0) {
+      return "Overdue";
+    }
+
+    if (difference <= 30) {
+      return "Due Soon";
+    }
+
+    return "Upcoming";
+  };
+
+  const formattedReminders = childReminders.map((reminder) => ({
+    ...reminder,
+    displayStatus: getReminderStatus(reminder),
+    icon:
+      reminder.status === "Completed"
+        ? "✓"
+        : "💉",
+  }));
 
   const filteredReminders =
     filter === "All"
-      ? reminders
-      : reminders.filter(
-          (reminder) => reminder.status === filter
+      ? formattedReminders
+      : formattedReminders.filter(
+          (reminder) => reminder.displayStatus === filter
         );
 
-  const dueSoon = reminders.filter(
-    (item) => item.status === "Due Soon"
+  const dueSoon = formattedReminders.filter(
+    (item) => item.displayStatus === "Due Soon"
   ).length;
 
-  const upcoming = reminders.filter(
-    (item) => item.status === "Upcoming"
+  const upcoming = formattedReminders.filter(
+    (item) => item.displayStatus === "Upcoming"
   ).length;
 
-  const completed = reminders.filter(
-    (item) => item.status === "Completed"
+  const completed = formattedReminders.filter(
+    (item) => item.displayStatus === "Completed"
   ).length;
+
+  const overdue = formattedReminders.filter(
+    (item) => item.displayStatus === "Overdue"
+  ).length;
+
+  const upcomingReminders = formattedReminders
+    .filter(
+      (item) =>
+        item.displayStatus === "Due Soon" ||
+        item.displayStatus === "Upcoming"
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.date) - new Date(b.date)
+    );
+
+  const importantReminder = upcomingReminders[0];
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getDaysRemaining = (date) => {
+    const today = new Date();
+    const vaccineDate = new Date(date);
+
+    today.setHours(0, 0, 0, 0);
+    vaccineDate.setHours(0, 0, 0, 0);
+
+    return Math.ceil(
+      (vaccineDate - today) /
+        (1000 * 60 * 60 * 24)
+    );
+  };
+
+  const getAvatarLetter = () => {
+    if (!user?.name) return "U";
+
+    return user.name.charAt(0).toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="reminders-page">
+        <div
+          style={{
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          Loading reminders...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="reminders-page">
@@ -98,7 +229,10 @@ function Reminders() {
             Schedule
           </a>
 
-          <a href="/reminders" className="active">
+          <a
+            href="/reminders"
+            className="active"
+          >
             <span>♧</span>
             Reminders
           </a>
@@ -120,8 +254,6 @@ function Reminders() {
 
         </nav>
 
-       
-
       </aside>
 
 
@@ -130,8 +262,6 @@ function Reminders() {
 
         {/* TOPBAR */}
         <header className="reminders-topbar">
-
-         
 
           <div className="reminders-top-space"></div>
 
@@ -143,12 +273,17 @@ function Reminders() {
           <div className="reminders-user">
 
             <div className="reminders-user-avatar">
-              F
+              {getAvatarLetter()}
             </div>
 
             <div className="reminders-user-info">
-              <strong>Farzana Akter</strong>
-              <small>Guardian</small>
+              <strong>
+                {user?.name || "User"}
+              </strong>
+
+              <small>
+                Guardian
+              </small>
             </div>
 
             <span className="reminders-user-arrow">
@@ -167,6 +302,7 @@ function Reminders() {
           <div className="reminders-page-header">
 
             <div>
+
               <span className="reminders-label">
                 NOTIFICATIONS
               </span>
@@ -178,6 +314,7 @@ function Reminders() {
               <p>
                 Never miss an important vaccination date.
               </p>
+
             </div>
 
             <button className="reminders-settings-btn">
@@ -185,6 +322,63 @@ function Reminders() {
             </button>
 
           </div>
+
+
+          {/* ERROR */}
+          {error && (
+            <div
+              style={{
+                padding: "15px",
+                marginBottom: "20px",
+                background: "#fde9e7",
+                color: "#c75b52",
+                borderRadius: "10px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+
+          {/* CHILD SELECTOR */}
+          {children.length > 0 && (
+            <div
+              style={{
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <strong>
+                Child:
+              </strong>
+
+              <select
+                value={selectedChildId}
+                onChange={(e) => {
+                  setSelectedChildId(e.target.value);
+                  setFilter("All");
+                }}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid #dfe7e3",
+                  background: "#fff",
+                  minWidth: "220px",
+                }}
+              >
+                {children.map((child) => (
+                  <option
+                    key={child._id}
+                    value={child._id}
+                  >
+                    {child.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
 
           {/* SUMMARY */}
@@ -197,8 +391,13 @@ function Reminders() {
               </div>
 
               <div>
-                <strong>{dueSoon}</strong>
-                <span>Due Soon</span>
+                <strong>
+                  {dueSoon}
+                </strong>
+
+                <span>
+                  Due Soon
+                </span>
               </div>
 
             </div>
@@ -211,8 +410,13 @@ function Reminders() {
               </div>
 
               <div>
-                <strong>{upcoming}</strong>
-                <span>Upcoming</span>
+                <strong>
+                  {upcoming}
+                </strong>
+
+                <span>
+                  Upcoming
+                </span>
               </div>
 
             </div>
@@ -225,8 +429,13 @@ function Reminders() {
               </div>
 
               <div>
-                <strong>{completed}</strong>
-                <span>Completed</span>
+                <strong>
+                  {completed}
+                </strong>
+
+                <span>
+                  Completed
+                </span>
               </div>
 
             </div>
@@ -239,8 +448,13 @@ function Reminders() {
               </div>
 
               <div>
-                <strong>ON</strong>
-                <span>Reminders Active</span>
+                <strong>
+                  ON
+                </strong>
+
+                <span>
+                  Reminders Active
+                </span>
               </div>
 
             </div>
@@ -249,42 +463,67 @@ function Reminders() {
 
 
           {/* IMPORTANT REMINDER */}
-          <section className="important-reminder">
+          {importantReminder && (
 
-            <div className="important-reminder-icon">
-              🔔
-            </div>
+            <section className="important-reminder">
 
-            <div className="important-reminder-content">
+              <div className="important-reminder-icon">
+                🔔
+              </div>
 
-              <span>IMPORTANT REMINDER</span>
+              <div className="important-reminder-content">
 
-              <h2>
-                Penta-2 vaccination is due soon
-              </h2>
+                <span>
+                  IMPORTANT REMINDER
+                </span>
 
-              <p>
-                Ahnaf Rahman's second Pentavalent dose
-                is scheduled for 20 May 2024.
-              </p>
+                <h2>
+                  {importantReminder.name} vaccination is due soon
+                </h2>
 
-            </div>
+                <p>
+                  {selectedChild?.name}'s{" "}
+                  {importantReminder.name} dose
+                  is scheduled for{" "}
+                  {formatDate(importantReminder.date)}.
+                </p>
 
-            <div className="important-reminder-date">
+              </div>
 
-              <span>DUE IN</span>
+              <div className="important-reminder-date">
 
-              <strong>
-                5 Days
-              </strong>
+                <span>
+                  {getDaysRemaining(
+                    importantReminder.date
+                  ) < 0
+                    ? "OVERDUE BY"
+                    : "DUE IN"}
+                </span>
 
-            </div>
+                <strong>
+                  {Math.abs(
+                    getDaysRemaining(
+                      importantReminder.date
+                    )
+                  )}{" "}
+                  {Math.abs(
+                    getDaysRemaining(
+                      importantReminder.date
+                    )
+                  ) === 1
+                    ? "Day"
+                    : "Days"}
+                </strong>
 
-            <button className="important-action">
-              View Schedule
-            </button>
+              </div>
 
-          </section>
+              <button className="important-action">
+                View Schedule
+              </button>
+
+            </section>
+
+          )}
 
 
           {/* REMINDER LIST */}
@@ -293,6 +532,7 @@ function Reminders() {
             <div className="reminders-list-header">
 
               <div>
+
                 <span>
                   REMINDER CENTER
                 </span>
@@ -300,6 +540,7 @@ function Reminders() {
                 <h2>
                   Your Reminders
                 </h2>
+
               </div>
 
               <button className="mark-all-btn">
@@ -317,6 +558,7 @@ function Reminders() {
                 "Due Soon",
                 "Upcoming",
                 "Completed",
+                "Overdue",
               ].map((item) => (
 
                 <button
@@ -342,105 +584,117 @@ function Reminders() {
             <div className="reminders-list">
 
               {filteredReminders.map(
-                (reminder, index) => (
+                (reminder) => {
 
-                  <div
-                    className="reminder-item"
-                    key={index}
-                  >
+                  const status =
+                    reminder.displayStatus;
 
+                  const statusClass =
+                    status
+                      .toLowerCase()
+                      .replace(" ", "-");
+
+                  return (
                     <div
-                      className={`reminder-icon ${
-                        reminder.status
-                          .toLowerCase()
-                          .replace(" ", "-")
-                      }`}
+                      className="reminder-item"
+                      key={reminder._id}
                     >
-                      {reminder.icon}
-                    </div>
+
+                      <div
+                        className={`reminder-icon ${statusClass}`}
+                      >
+                        {reminder.icon}
+                      </div>
 
 
-                    <div className="reminder-main-info">
+                      <div className="reminder-main-info">
 
-                      <div className="reminder-title-row">
+                        <div className="reminder-title-row">
 
-                        <h3>
-                          {reminder.vaccine}
-                        </h3>
+                          <h3>
+                            {reminder.name}
+                          </h3>
 
-                        <span
-                          className={`reminder-status ${
-                            reminder.status
-                              .toLowerCase()
-                              .replace(" ", "-")
-                          }`}
-                        >
-                          {reminder.status}
-                        </span>
+                          <span
+                            className={`reminder-status ${statusClass}`}
+                          >
+                            {status}
+                          </span>
+
+                        </div>
+
+                        <p>
+                          {reminder.description}
+                        </p>
+
+                        <div className="reminder-meta">
+
+                          <span>
+                            👶{" "}
+                            {selectedChild?.name ||
+                              "Child"}
+                          </span>
+
+                          <span>
+                            📅{" "}
+                            {formatDate(
+                              reminder.date
+                            )}
+                          </span>
+
+                          <span>
+                            ◷{" "}
+                            {formatTime(
+                              reminder.date
+                            )}
+                          </span>
+
+                        </div>
 
                       </div>
 
-                      <p>
-                        {reminder.description}
-                      </p>
 
-                      <div className="reminder-meta">
+                      <div className="reminder-actions">
 
-                        <span>
-                          👶 {reminder.child}
-                        </span>
-
-                        <span>
-                          📅 {reminder.date}
-                        </span>
-
-                        <span>
-                          ◷ {reminder.time}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-
-                    <div className="reminder-actions">
-
-                      {reminder.status ===
+                        {status ===
                         "Completed" ? (
 
-                        <button className="completed-btn">
-                          ✓ Done
-                        </button>
-
-                      ) : (
-
-                        <>
-                          <button className="snooze-btn">
-                            Snooze
+                          <button className="completed-btn">
+                            ✓ Done
                           </button>
 
-                          <button className="view-btn">
-                            View
-                          </button>
-                        </>
+                        ) : (
 
-                      )}
+                          <>
+                            <button className="snooze-btn">
+                              Snooze
+                            </button>
+
+                            <button className="view-btn">
+                              View
+                            </button>
+                          </>
+
+                        )}
+
+                      </div>
 
                     </div>
-
-                  </div>
-
-                )
+                  );
+                }
               )}
 
             </div>
 
 
+            {/* EMPTY */}
             {filteredReminders.length === 0 && (
 
               <div className="reminders-empty">
 
-                <span>🔔</span>
+                <span>
+                  🔔
+                </span>
 
                 <h3>
                   No reminders found
