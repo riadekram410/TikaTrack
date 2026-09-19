@@ -6,6 +6,7 @@ import {
     getSchedule,
     updateSchedule,
     deleteSchedule,
+    generateSchedulesForExistingChildren,
 } from "../controller/scheduleController.js";
 
 import checkToken from "../middlewares/checkToken.js";
@@ -14,6 +15,13 @@ const router = express.Router();
 
 // Create schedule
 router.post("/", checkToken, createSchedule);
+
+// Generate vaccine schedules for existing children
+router.post(
+    "/generate-existing",
+    checkToken,
+    generateSchedulesForExistingChildren
+);
 
 // Get all schedules
 router.get("/", checkToken, getSchedules);

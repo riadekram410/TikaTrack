@@ -1,10 +1,189 @@
+import { useEffect, useState } from "react";
 import "./reports.css";
 
+const API = "http://localhost:5000/api";
+
+const formatDate = (date) =>
+  date
+    ? new Date(date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "Not available";
+
+const getVaccineStatus = (vaccine) => {
+  if (vaccine.status === "Completed") {
+    return "Completed";
+  }
+
+  const today = new Date();
+  const dueDate = new Date(vaccine.date);
+
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  if (dueDate < today) {
+    return "Overdue";
+  }
+
+  return "Upcoming";
+};
+
+const isDueSoon = (vaccine) => {
+  if (getVaccineStatus(vaccine) !== "Upcoming") {
+    return false;
+  }
+
+  const today = new Date();
+  const dueDate = new Date(vaccine.date);
+
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  const difference =
+    (dueDate - today) / (1000 * 60 * 60 * 24);
+
+  return difference >= 0 && difference <= 30;
+};
+
 function Reports() {
+  const [user, setUser] = useState(null);
+  const [children, setChildren] = useState([]);
+  const [vaccines, setVaccines] = useState([]);
+
+  const [selectedChildId, setSelectedChildId] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [
+          profileRes,
+          childrenRes,
+          scheduleRes,
+        ] = await Promise.all([
+          fetch(`${API}/users/profile`, {
+            credentials: "include",
+          }),
+
+          fetch(`${API}/children`, {
+            credentials: "include",
+          }),
+
+          fetch(`${API}/schedules`, {
+            credentials: "include",
+          }),
+        ]);
+
+        const profileData = await profileRes.json();
+        const childrenData = await childrenRes.json();
+        const scheduleData = await scheduleRes.json();
+
+        if (!profileRes.ok) {
+          throw new Error(
+            profileData.error || "Failed to load profile"
+          );
+        }
+
+        if (!childrenRes.ok) {
+          throw new Error(
+            childrenData.error || "Failed to load children"
+          );
+        }
+
+        if (!scheduleRes.ok) {
+          throw new Error(
+            scheduleData.error || "Failed to load schedules"
+          );
+        }
+
+        const loadedChildren =
+          childrenData.children || [];
+
+        setUser(profileData.user);
+        setChildren(loadedChildren);
+        setVaccines(scheduleData.schedules || []);
+
+        if (loadedChildren.length > 0) {
+          setSelectedChildId(loadedChildren[0]._id);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const selectedChild = children.find(
+    (child) =>
+      String(child._id) === String(selectedChildId)
+  );
+
+  const childVaccines = selectedChild
+    ? vaccines.filter(
+        (vaccine) =>
+          String(vaccine.childId?._id) ===
+          String(selectedChild._id)
+      )
+    : [];
+
+  const completedVaccines = childVaccines.filter(
+    (vaccine) =>
+      getVaccineStatus(vaccine) === "Completed"
+  );
+
+  const upcomingVaccines = childVaccines.filter(
+    (vaccine) =>
+      getVaccineStatus(vaccine) === "Upcoming"
+  );
+
+  const overdueVaccines = childVaccines.filter(
+    (vaccine) =>
+      getVaccineStatus(vaccine) === "Overdue"
+  );
+
+  const dueSoonVaccines = upcomingVaccines.filter(
+    (vaccine) => isDueSoon(vaccine)
+  );
+
+  const completed = completedVaccines.length;
+  const upcoming = upcomingVaccines.length;
+  const overdue = overdueVaccines.length;
+  const dueSoon = dueSoonVaccines.length;
+  const total = childVaccines.length;
+
+  const progress = total
+    ? Math.round((completed / total) * 100)
+    : 0;
+
+  const filteredVaccines = childVaccines.filter(
+    (vaccine) => {
+      const status = getVaccineStatus(vaccine);
+
+      if (filter === "All") {
+        return true;
+      }
+
+      if (filter === "Due Soon") {
+        return isDueSoon(vaccine);
+      }
+
+      return status === filter;
+    }
+  );
+
   return (
     <div className="reports-page">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* SIDEBAR */}
       <aside className="reports-sidebar">
 
         <div className="reports-logo">
@@ -33,7 +212,10 @@ function Reports() {
             Reminders
           </a>
 
-          <a href="/reports" className="active">
+          <a
+            href="/reports"
+            className="active"
+          >
             <span>▥</span>
             Reports
           </a>
@@ -50,18 +232,14 @@ function Reports() {
 
         </nav>
 
-        
-
       </aside>
 
-
-      {/* ================= MAIN ================= */}
+      {/* MAIN */}
       <main className="reports-main">
 
         {/* TOPBAR */}
         <header className="reports-topbar">
 
-          
           <div className="reports-top-space"></div>
 
           <button className="reports-notification">
@@ -72,11 +250,14 @@ function Reports() {
           <div className="reports-user">
 
             <div className="reports-user-avatar">
-              F
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
 
             <div className="reports-user-info">
-              <strong>Farzana Akter</strong>
+              <strong>
+                {user?.name || "User"}
+              </strong>
+
               <small>Guardian</small>
             </div>
 
@@ -88,8 +269,7 @@ function Reports() {
 
         </header>
 
-
-        {/* ================= CONTENT ================= */}
+        {/* CONTENT */}
         <div className="reports-content">
 
           {/* PAGE HEADER */}
@@ -109,339 +289,388 @@ function Reports() {
               </p>
             </div>
 
-            <button className="download-report-btn">
+            <button
+              className="download-report-btn"
+              onClick={() => window.print()}
+            >
               ↓ Download Report
             </button>
 
           </div>
 
-
-          {/* CHILD SELECTOR */}
-          <section className="reports-card child-report-header">
-
-            <div className="child-report-avatar">
-              A
+          {/* LOADING */}
+          {loading && (
+            <div className="reports-card">
+              <h2>Loading report...</h2>
+              <p>Please wait...</p>
             </div>
+          )}
 
-            <div className="child-report-info">
-              <span>CHILD</span>
-
-              <h2>
-                Ahnaf Rahman
-              </h2>
-
-              <p>
-                Date of Birth: 20 January 2024
-              </p>
+          {/* ERROR */}
+          {!loading && error && (
+            <div className="reports-card">
+              <h2>Unable to load report</h2>
+              <p>{error}</p>
             </div>
+          )}
 
-            <select className="child-select">
-              <option>Ahnaf Rahman</option>
-              <option>Another Child</option>
-            </select>
-
-          </section>
-
-
-          {/* SUMMARY CARDS */}
-          <div className="report-summary-grid">
-
-            <div className="report-summary-card">
-
-              <div className="summary-icon green">
-                ✓
+          {/* NO CHILD */}
+          {!loading &&
+            !error &&
+            !selectedChild && (
+              <div className="reports-card">
+                <h2>No child added</h2>
+                <p>
+                  Add a child first to generate a vaccination report.
+                </p>
               </div>
+            )}
 
-              <div>
-                <span>COMPLETED</span>
-                <strong>8</strong>
-                <p>Vaccinations completed</p>
-              </div>
+          {/* REPORT */}
+          {!loading &&
+            !error &&
+            selectedChild && (
+              <>
 
-            </div>
+                {/* CHILD SELECTOR */}
+                <section className="reports-card child-report-header">
 
-
-            <div className="report-summary-card">
-
-              <div className="summary-icon blue">
-                ◷
-              </div>
-
-              <div>
-                <span>UPCOMING</span>
-                <strong>3</strong>
-                <p>Vaccinations upcoming</p>
-              </div>
-
-            </div>
-
-
-            <div className="report-summary-card">
-
-              <div className="summary-icon orange">
-                !
-              </div>
-
-              <div>
-                <span>DUE SOON</span>
-                <strong>1</strong>
-                <p>Vaccination due soon</p>
-              </div>
-
-            </div>
-
-
-            <div className="report-summary-card">
-
-              <div className="summary-icon red">
-                !
-              </div>
-
-              <div>
-                <span>OVERDUE</span>
-                <strong>0</strong>
-                <p>Vaccinations overdue</p>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* PROGRESS */}
-          <section className="reports-card progress-card">
-
-            <div className="report-section-heading">
-
-              <div>
-                <span>OVERALL PROGRESS</span>
-
-                <h2>
-                  Vaccination Completion
-                </h2>
-              </div>
-
-              <strong className="progress-percentage">
-                67%
-              </strong>
-
-            </div>
-
-            <div className="progress-bar">
-              <div className="progress-fill"></div>
-            </div>
-
-            <div className="progress-details">
-
-              <span>
-                8 completed
-              </span>
-
-              <span>
-                12 total vaccinations
-              </span>
-
-            </div>
-
-          </section>
-
-
-          {/* VACCINATION HISTORY */}
-          <section className="reports-card">
-
-            <div className="report-section-heading">
-
-              <div>
-                <span>VACCINATION HISTORY</span>
-
-                <h2>
-                  Dose History
-                </h2>
-              </div>
-
-              <select className="report-filter">
-                <option>All</option>
-                <option>Completed</option>
-                <option>Upcoming</option>
-                <option>Due Soon</option>
-              </select>
-
-            </div>
-
-
-            <div className="vaccination-table">
-
-              {/* HEADER */}
-              <div className="vaccination-row table-header">
-
-                <span>VACCINE</span>
-                <span>DOSE</span>
-                <span>DATE</span>
-                <span>STATUS</span>
-
-              </div>
-
-
-              {/* ROW 1 */}
-              <div className="vaccination-row">
-
-                <div className="vaccine-name">
-                  <div className="vaccine-icon green">
-                    ✓
+                  <div className="child-report-avatar">
+                    {selectedChild.name
+                      ?.charAt(0)
+                      .toUpperCase() || "C"}
                   </div>
 
-                  <div>
-                    <strong>BCG</strong>
-                    <small>Tuberculosis</small>
+                  <div className="child-report-info">
+
+                    <span>CHILD</span>
+
+                    <h2>
+                      {selectedChild.name}
+                    </h2>
+
+                    <p>
+                      Date of Birth:{" "}
+                      {formatDate(
+                        selectedChild.dateOfBirth
+                      )}
+                    </p>
+
                   </div>
+
+                  <select
+                    className="child-select"
+                    value={selectedChildId}
+                    onChange={(e) => {
+                      setSelectedChildId(
+                        e.target.value
+                      );
+                      setFilter("All");
+                    }}
+                  >
+                    {children.map((child) => (
+                      <option
+                        key={child._id}
+                        value={child._id}
+                      >
+                        {child.name}
+                      </option>
+                    ))}
+                  </select>
+
+                </section>
+
+                {/* SUMMARY */}
+                <div className="report-summary-grid">
+
+                  <div className="report-summary-card">
+
+                    <div className="summary-icon green">
+                      ✓
+                    </div>
+
+                    <div>
+                      <span>COMPLETED</span>
+
+                      <strong>
+                        {completed}
+                      </strong>
+
+                      <p>
+                        Vaccinations completed
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="report-summary-card">
+
+                    <div className="summary-icon blue">
+                      ◷
+                    </div>
+
+                    <div>
+                      <span>UPCOMING</span>
+
+                      <strong>
+                        {upcoming}
+                      </strong>
+
+                      <p>
+                        Vaccinations upcoming
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="report-summary-card">
+
+                    <div className="summary-icon orange">
+                      !
+                    </div>
+
+                    <div>
+                      <span>DUE SOON</span>
+
+                      <strong>
+                        {dueSoon}
+                      </strong>
+
+                      <p>
+                        Vaccination due soon
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="report-summary-card">
+
+                    <div className="summary-icon red">
+                      !
+                    </div>
+
+                    <div>
+                      <span>OVERDUE</span>
+
+                      <strong>
+                        {overdue}
+                      </strong>
+
+                      <p>
+                        Vaccinations overdue
+                      </p>
+                    </div>
+
+                  </div>
+
                 </div>
 
-                <span>
-                  Birth Dose
-                </span>
+                {/* PROGRESS */}
+                <section className="reports-card progress-card">
 
-                <span>
-                  20 Jan 2024
-                </span>
+                  <div className="report-section-heading">
 
-                <span className="status completed">
-                  Completed
-                </span>
+                    <div>
+                      <span>
+                        OVERALL PROGRESS
+                      </span>
 
-              </div>
+                      <h2>
+                        Vaccination Completion
+                      </h2>
+                    </div>
 
+                    <strong className="progress-percentage">
+                      {progress}%
+                    </strong>
 
-              {/* ROW 2 */}
-              <div className="vaccination-row">
-
-                <div className="vaccine-name">
-                  <div className="vaccine-icon green">
-                    ✓
                   </div>
 
-                  <div>
-                    <strong>Penta-1</strong>
-                    <small>Pentavalent Vaccine</small>
+                  <div className="progress-bar">
+
+                    <div
+                      className="progress-fill"
+                      style={{
+                        width: `${progress}%`,
+                      }}
+                    />
+
                   </div>
+
+                  <div className="progress-details">
+
+                    <span>
+                      {completed} completed
+                    </span>
+
+                    <span>
+                      {total} total vaccinations
+                    </span>
+
+                  </div>
+
+                </section>
+
+                {/* VACCINATION HISTORY */}
+                <section className="reports-card">
+
+                  <div className="report-section-heading">
+
+                    <div>
+                      <span>
+                        VACCINATION HISTORY
+                      </span>
+
+                      <h2>
+                        Dose History
+                      </h2>
+                    </div>
+
+                    <select
+                      className="report-filter"
+                      value={filter}
+                      onChange={(e) =>
+                        setFilter(e.target.value)
+                      }
+                    >
+                      <option value="All">
+                        All
+                      </option>
+
+                      <option value="Completed">
+                        Completed
+                      </option>
+
+                      <option value="Upcoming">
+                        Upcoming
+                      </option>
+
+                      <option value="Due Soon">
+                        Due Soon
+                      </option>
+
+                      <option value="Overdue">
+                        Overdue
+                      </option>
+
+                    </select>
+
+                  </div>
+
+                  <div className="vaccination-table">
+
+                    {/* HEADER */}
+                    <div className="vaccination-row table-header">
+
+                      <span>VACCINE</span>
+                      <span>DOSE</span>
+                      <span>DATE</span>
+                      <span>STATUS</span>
+
+                    </div>
+
+                    {/* ROWS */}
+                    {filteredVaccines.map(
+                      (vaccine) => {
+                        const status =
+                          getVaccineStatus(vaccine);
+
+                        return (
+                          <div
+                            className="vaccination-row"
+                            key={vaccine._id}
+                          >
+
+                            <div className="vaccine-name">
+
+                              <div
+                                className={`vaccine-icon ${
+                                  status ===
+                                  "Completed"
+                                    ? "green"
+                                    : status ===
+                                      "Overdue"
+                                    ? "red"
+                                    : "blue"
+                                }`}
+                              >
+                                {status ===
+                                "Completed"
+                                  ? "✓"
+                                  : status ===
+                                    "Overdue"
+                                  ? "!"
+                                  : "◷"}
+                              </div>
+
+                              <div>
+                                <strong>
+                                  {vaccine.name}
+                                </strong>
+
+                                <small>
+                                  {vaccine.description}
+                                </small>
+                              </div>
+
+                            </div>
+
+                            <span>
+                              {vaccine.dose}
+                            </span>
+
+                            <span>
+                              {formatDate(
+                                vaccine.date
+                              )}
+                            </span>
+
+                            <span
+                              className={`status ${
+                                status ===
+                                "Completed"
+                                  ? "completed"
+                                  : status ===
+                                    "Overdue"
+                                  ? "overdue"
+                                  : "upcoming"
+                              }`}
+                            >
+                              {isDueSoon(vaccine) &&
+                              status ===
+                                "Upcoming"
+                                ? "Due Soon"
+                                : status}
+                            </span>
+
+                          </div>
+                        );
+                      }
+                    )}
+
+                  </div>
+
+                  {!filteredVaccines.length && (
+                    <div className="report-last-updated">
+                      No vaccinations found for this filter.
+                    </div>
+                  )}
+
+                </section>
+
+                {/* LAST UPDATED */}
+                <div className="report-last-updated">
+                  Report generated from current vaccination data
                 </div>
 
-                <span>
-                  Dose 1
-                </span>
-
-                <span>
-                  20 Feb 2024
-                </span>
-
-                <span className="status completed">
-                  Completed
-                </span>
-
-              </div>
-
-
-              {/* ROW 3 */}
-              <div className="vaccination-row">
-
-                <div className="vaccine-name">
-                  <div className="vaccine-icon green">
-                    ✓
-                  </div>
-
-                  <div>
-                    <strong>Penta-2</strong>
-                    <small>Pentavalent Vaccine</small>
-                  </div>
-                </div>
-
-                <span>
-                  Dose 2
-                </span>
-
-                <span>
-                  20 Mar 2024
-                </span>
-
-                <span className="status completed">
-                  Completed
-                </span>
-
-              </div>
-
-
-              {/* ROW 4 */}
-              <div className="vaccination-row">
-
-                <div className="vaccine-name">
-                  <div className="vaccine-icon orange">
-                    !
-                  </div>
-
-                  <div>
-                    <strong>Penta-3</strong>
-                    <small>Pentavalent Vaccine</small>
-                  </div>
-                </div>
-
-                <span>
-                  Dose 3
-                </span>
-
-                <span>
-                  20 May 2024
-                </span>
-
-                <span className="status due">
-                  Due Soon
-                </span>
-
-              </div>
-
-
-              {/* ROW 5 */}
-              <div className="vaccination-row">
-
-                <div className="vaccine-name">
-                  <div className="vaccine-icon blue">
-                    ◷
-                  </div>
-
-                  <div>
-                    <strong>MR-1</strong>
-                    <small>Measles & Rubella</small>
-                  </div>
-                </div>
-
-                <span>
-                  Dose 1
-                </span>
-
-                <span>
-                  20 Jan 2025
-                </span>
-
-                <span className="status upcoming">
-                  Upcoming
-                </span>
-
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* LAST UPDATED */}
-          <div className="report-last-updated">
-            Last updated: 18 May 2024
-          </div>
+              </>
+            )}
 
         </div>
 
       </main>
 
-
-      {/* ================= MOBILE NAV ================= */}
+      {/* MOBILE NAV */}
       <nav className="reports-mobile-nav">
 
         <a href="/dashboard">
