@@ -61,10 +61,7 @@ function Reports() {
         {/* TOPBAR */}
         <header className="reports-topbar">
 
-          <button className="reports-mobile-menu">
-            ☰
-          </button>
-
+          
           <div className="reports-top-space"></div>
 
           <button className="reports-notification">

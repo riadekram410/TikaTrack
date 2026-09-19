@@ -7,6 +7,8 @@ import "dotenv/config";
 import userRoutes from "./routes/users.js";
 import authRouter from "./routes/auth.js";
 import childRoutes from "./routes/children.js";
+import scheduleRoutes from "./routes/schedules.js";
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -47,6 +49,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/children", childRoutes);
+app.use("/api/schedules", scheduleRoutes);
+
 // Start server
 app.listen(PORT, () => {
     console.log(

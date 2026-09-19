@@ -131,9 +131,7 @@ function Reminders() {
         {/* TOPBAR */}
         <header className="reminders-topbar">
 
-          <button className="reminders-mobile-menu">
-            ☰
-          </button>
+         
 
           <div className="reminders-top-space"></div>
 

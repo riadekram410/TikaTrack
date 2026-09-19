@@ -97,9 +97,7 @@ function ChildDetails() {
         {/* TOPBAR */}
         <header className="child-details-topbar">
 
-          <button className="child-details-mobile-menu">
-            ☰
-          </button>
+          
 
           <div className="child-details-top-space"></div>
 
