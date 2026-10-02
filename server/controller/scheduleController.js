@@ -2,8 +2,49 @@ import Schedule from "../model/schedule.js";
 import Child from "../model/child.js";
 import { generateVaccineSchedule } from "../utils/vaccineSchedule.js";
 
-export const generateSchedulesForExistingChildren = async (req, res) => {
+
+// ======================================================
+// AUTOMATIC STATUS UPDATE
+// ======================================================
+
+const updateAutomaticStatuses = async (schedules) => {
+    const today = new Date();
+
+    for (const schedule of schedules) {
+
+        // যদি vaccine already completed হয়,
+        // তাহলে automatic status change হবে না
+        if (schedule.status === "Completed") {
+            continue;
+        }
+
+        const vaccineDate = new Date(
+            schedule.date
+        );
+
+        if (vaccineDate < today) {
+            schedule.status = "Overdue";
+        } else {
+            schedule.status = "Upcoming";
+        }
+
+        await schedule.save();
+    }
+
+    return schedules;
+};
+
+
+// ======================================================
+// GENERATE SCHEDULES FOR EXISTING CHILDREN
+// ======================================================
+
+export const generateSchedulesForExistingChildren = async (
+    req,
+    res
+) => {
     try {
+
         const children = await Child.find({
             userId: req.user.id,
         });
@@ -17,34 +58,58 @@ export const generateSchedulesForExistingChildren = async (req, res) => {
         let createdCount = 0;
         let skippedCount = 0;
 
-        for (const child of children) {
-            const existingSchedules = await Schedule.countDocuments({
-                childId: child._id,
-            });
 
+        for (const child of children) {
+
+            const existingSchedules =
+                await Schedule.countDocuments({
+                    childId: child._id,
+                });
+
+
+            // যদি আগে থেকেই schedule থাকে
+            // তাহলে নতুন করে generate করবে না
             if (existingSchedules > 0) {
                 skippedCount++;
                 continue;
             }
 
-            const vaccineSchedule = generateVaccineSchedule(
-                child.dateOfBirth,
-                child._id
+
+            const vaccineSchedule =
+                generateVaccineSchedule(
+                    child.dateOfBirth,
+                    child._id
+                );
+
+
+            await Schedule.insertMany(
+                vaccineSchedule
             );
 
-            await Schedule.insertMany(vaccineSchedule);
 
-            createdCount += vaccineSchedule.length;
+            createdCount +=
+                vaccineSchedule.length;
         }
 
+
         return res.status(201).json({
-            message: "Vaccine schedules generated successfully",
-            childrenProcessed: children.length,
-            schedulesCreated: createdCount,
-            childrenSkipped: skippedCount,
+
+            message:
+                "Vaccine schedules generated successfully",
+
+            childrenProcessed:
+                children.length,
+
+            schedulesCreated:
+                createdCount,
+
+            childrenSkipped:
+                skippedCount,
         });
 
+
     } catch (err) {
+
         console.log(
             `Error generating existing schedules: ${err}`
         );
@@ -55,8 +120,18 @@ export const generateSchedulesForExistingChildren = async (req, res) => {
     }
 };
 
-export const createSchedule = async (req, res) => {
+
+// ======================================================
+// CREATE SCHEDULE
+// ======================================================
+
+export const createSchedule = async (
+    req,
+    res
+) => {
+
     try {
+
         const {
             childId,
             name,
@@ -65,6 +140,7 @@ export const createSchedule = async (req, res) => {
             date,
             status,
         } = req.body;
+
 
         if (
             !childId ||
@@ -73,39 +149,95 @@ export const createSchedule = async (req, res) => {
             !dose ||
             !date
         ) {
+
             return res.status(400).json({
-                error: "Child, vaccine name, description, dose and date are required",
+
+                error:
+                    "Child, vaccine name, description, dose and date are required",
+
             });
         }
 
+
+        // Check child belongs to logged-in user
         const child = await Child.findOne({
+
             _id: childId,
+
             userId: req.user.id,
+
         });
 
+
         if (!child) {
+
             return res.status(404).json({
                 error: "Child not found",
             });
         }
 
-        const schedule = new Schedule({
-            childId,
-            name,
-            description,
-            dose,
-            date,
-            status: status || "Upcoming",
-        });
+
+        const vaccineDate =
+            new Date(date);
+
+
+        let vaccineStatus;
+
+
+        // যদি frontend থেকে Completed পাঠানো হয়
+        // তাহলে Completed থাকবে
+        if (status === "Completed") {
+
+            vaccineStatus =
+                "Completed";
+
+        } else {
+
+            // অন্যথায় date অনুযায়ী
+            // Upcoming / Overdue
+            vaccineStatus =
+                vaccineDate < new Date()
+                    ? "Overdue"
+                    : "Upcoming";
+        }
+
+
+        const schedule =
+            new Schedule({
+
+                childId,
+
+                name,
+
+                description,
+
+                dose,
+
+                date: vaccineDate,
+
+                status: vaccineStatus,
+
+            });
+
 
         await schedule.save();
 
+
         return res.status(201).json({
-            message: "Schedule created successfully",
+
+            message:
+                "Schedule created successfully",
+
             schedule,
+
         });
+
+
     } catch (err) {
-        console.log(`Error creating schedule: ${err}`);
+
+        console.log(
+            `Error creating schedule: ${err}`
+        );
 
         return res.status(500).json({
             error: "Server error",
@@ -114,59 +246,177 @@ export const createSchedule = async (req, res) => {
 };
 
 
-export const getSchedules = async (req, res) => {
+// ======================================================
+// GET ALL SCHEDULES
+// ======================================================
+
+export const getSchedules = async (
+    req,
+    res
+) => {
+
     try {
-        const children = await Child.find({
-            userId: req.user.id,
-        }).select("_id");
 
-        const childIds = children.map(
-            (child) => child._id
-        );
+        // Logged-in user's children
+        const children =
+            await Child.find({
 
-        const schedules = await Schedule.find({
-            childId: { $in: childIds },
-        })
-            .populate("childId", "name")
-            .sort({ date: 1 });
+                userId:
+                    req.user.id,
+
+            }).select("_id");
+
+
+        const childIds =
+            children.map(
+                (child) =>
+                    child._id
+            );
+
+
+        let schedules =
+            await Schedule.find({
+
+                childId: {
+                    $in: childIds,
+                },
+
+            })
+                .populate(
+                    "childId",
+                    "name dateOfBirth gender"
+                )
+                .sort({
+                    date: 1,
+                });
+
+
+        // Automatically update
+        // Upcoming / Overdue
+        schedules =
+            await updateAutomaticStatuses(
+                schedules
+            );
+
 
         return res.status(200).json({
+
             schedules,
+
         });
+
+
     } catch (err) {
-        console.log(`Error getting schedules: ${err}`);
+
+        console.log(
+            `Error getting schedules: ${err}`
+        );
 
         return res.status(500).json({
             error: "Server error",
         });
     }
 };
-export const getSchedule = async (req, res) => {
+
+
+// ======================================================
+// GET SINGLE SCHEDULE
+// ======================================================
+
+export const getSchedule = async (
+    req,
+    res
+) => {
+
     try {
-        const children = await Child.find({
-            userId: req.user.id,
-        }).select("_id");
 
-        const childIds = children.map(
-            (child) => child._id
-        );
+        const children =
+            await Child.find({
 
-        const schedule = await Schedule.findOne({
-            _id: req.params.id,
-            childId: { $in: childIds },
-        }).populate("childId", "name");
+                userId:
+                    req.user.id,
+
+            }).select("_id");
+
+
+        const childIds =
+            children.map(
+                (child) =>
+                    child._id
+            );
+
+
+        const schedule =
+            await Schedule.findOne({
+
+                _id: req.params.id,
+
+                childId: {
+                    $in: childIds,
+                },
+
+            }).populate(
+                "childId",
+                "name dateOfBirth gender"
+            );
+
 
         if (!schedule) {
+
             return res.status(404).json({
-                error: "Schedule not found",
+
+                error:
+                    "Schedule not found",
+
             });
         }
+
+
+        // Completed হলে change হবে না
+        if (
+            schedule.status !==
+            "Completed"
+        ) {
+
+            const today =
+                new Date();
+
+            const vaccineDate =
+                new Date(
+                    schedule.date
+                );
+
+
+            if (
+                vaccineDate < today
+            ) {
+
+                schedule.status =
+                    "Overdue";
+
+            } else {
+
+                schedule.status =
+                    "Upcoming";
+            }
+
+
+            await schedule.save();
+        }
+
 
         return res.status(200).json({
+
             schedule,
+
         });
+
+
     } catch (err) {
-        console.log(`Error getting schedule: ${err}`);
+
+        console.log(
+            `Error getting schedule: ${err}`
+        );
 
         return res.status(500).json({
             error: "Server error",
@@ -175,26 +425,55 @@ export const getSchedule = async (req, res) => {
 };
 
 
-export const updateSchedule = async (req, res) => {
+// ======================================================
+// UPDATE SCHEDULE
+// ======================================================
+
+export const updateSchedule = async (
+    req,
+    res
+) => {
+
     try {
-        const children = await Child.find({
-            userId: req.user.id,
-        }).select("_id");
 
-        const childIds = children.map(
-            (child) => child._id
-        );
+        const children =
+            await Child.find({
 
-        const schedule = await Schedule.findOne({
-            _id: req.params.id,
-            childId: { $in: childIds },
-        });
+                userId:
+                    req.user.id,
+
+            }).select("_id");
+
+
+        const childIds =
+            children.map(
+                (child) =>
+                    child._id
+            );
+
+
+        const schedule =
+            await Schedule.findOne({
+
+                _id: req.params.id,
+
+                childId: {
+                    $in: childIds,
+                },
+
+            });
+
 
         if (!schedule) {
+
             return res.status(404).json({
-                error: "Schedule not found",
+
+                error:
+                    "Schedule not found",
+
             });
         }
+
 
         const {
             name,
@@ -204,21 +483,75 @@ export const updateSchedule = async (req, res) => {
             status,
         } = req.body;
 
-        schedule.name = name ?? schedule.name;
+
+        schedule.name =
+            name ??
+            schedule.name;
+
+
         schedule.description =
-            description ?? schedule.description;
-        schedule.dose = dose ?? schedule.dose;
-        schedule.date = date ?? schedule.date;
-        schedule.status = status ?? schedule.status;
+            description ??
+            schedule.description;
+
+
+        schedule.dose =
+            dose ??
+            schedule.dose;
+
+
+        if (date !== undefined) {
+
+            schedule.date =
+                date;
+
+        }
+
+
+        // যদি explicitly status পাঠানো হয়
+        // সেটা use করবে
+        if (status !== undefined) {
+
+            schedule.status =
+                status;
+
+        } else if (
+            schedule.status !==
+            "Completed"
+        ) {
+
+            // Completed না হলে
+            // date অনুযায়ী status update
+            const vaccineDate =
+                new Date(
+                    schedule.date
+                );
+
+            schedule.status =
+                vaccineDate <
+                new Date()
+                    ? "Overdue"
+                    : "Upcoming";
+        }
+
 
         await schedule.save();
 
+
         return res.status(200).json({
-            message: "Schedule updated successfully",
+
+            message:
+                "Schedule updated successfully",
+
             schedule,
+
         });
+
+
     } catch (err) {
-        console.log(`Error updating schedule: ${err}`);
+
+        console.log(
+            `Error updating schedule: ${err}`
+        );
 
         return res.status(500).json({
             error: "Server error",
@@ -227,32 +560,150 @@ export const updateSchedule = async (req, res) => {
 };
 
 
-export const deleteSchedule = async (req, res) => {
+// ======================================================
+// MARK VACCINATION AS COMPLETED
+// ======================================================
+
+export const markScheduleCompleted =
+    async (req, res) => {
+
+        try {
+
+            const children =
+                await Child.find({
+
+                    userId:
+                        req.user.id,
+
+                }).select("_id");
+
+
+            const childIds =
+                children.map(
+                    (child) =>
+                        child._id
+                );
+
+
+            const schedule =
+                await Schedule.findOne({
+
+                    _id:
+                        req.params.id,
+
+                    childId: {
+                        $in: childIds,
+                    },
+
+                });
+
+
+            if (!schedule) {
+
+                return res.status(404).json({
+
+                    error:
+                        "Schedule not found",
+
+                });
+            }
+
+
+            // Vaccine completed
+            schedule.status =
+                "Completed";
+
+
+            await schedule.save();
+
+
+            return res.status(200).json({
+
+                message:
+                    "Vaccination marked as completed",
+
+                schedule,
+
+            });
+
+
+        } catch (err) {
+
+            console.log(
+                `Error marking vaccination completed: ${err}`
+            );
+
+            return res.status(500).json({
+                error: "Server error",
+            });
+        }
+    };
+
+
+// ======================================================
+// DELETE SCHEDULE
+// ======================================================
+
+export const deleteSchedule = async (
+    req,
+    res
+) => {
+
     try {
-        const children = await Child.find({
-            userId: req.user.id,
-        }).select("_id");
 
-        const childIds = children.map(
-            (child) => child._id
-        );
+        const children =
+            await Child.find({
 
-        const schedule = await Schedule.findOneAndDelete({
-            _id: req.params.id,
-            childId: { $in: childIds },
-        });
+                userId:
+                    req.user.id,
+
+            }).select("_id");
+
+
+        const childIds =
+            children.map(
+                (child) =>
+                    child._id
+            );
+
+
+        const schedule =
+            await Schedule.findOneAndDelete({
+
+                _id:
+                    req.params.id,
+
+                childId: {
+                    $in: childIds,
+                },
+
+            });
+
 
         if (!schedule) {
+
             return res.status(404).json({
-                error: "Schedule not found",
+
+                error:
+                    "Schedule not found",
+
             });
         }
 
+
         return res.status(200).json({
-            message: "Schedule deleted successfully",
+
+            message:
+                "Schedule deleted successfully",
+
         });
+
+
     } catch (err) {
-        console.log(`Error deleting schedule: ${err}`);
+
+        console.log(
+            `Error deleting schedule: ${err}`
+        );
 
         return res.status(500).json({
             error: "Server error",

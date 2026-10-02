@@ -49,7 +49,7 @@ function Login() {
       console.log("Login successful:", data.user);
 
       // Go to dashboard after successful login
-      navigate("/dashboard");
+     navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error("Login error:", err);
       setError("Unable to connect to server");

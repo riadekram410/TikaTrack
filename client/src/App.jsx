@@ -15,22 +15,49 @@ import Reports from "./pages/reports/reports";
 import Settings from "./pages/settings/settings";
 
 import ProtectedRoute from "./ProtectedRoute";
+import CarbonFootprintDisplay
+    from "./components/CarbonFootprintDisplay";
+import GuestRoute from "./GuestRoute";
+import PublicRoute from "./PublicRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={
+        <PublicRoute>
+            <Landing />
+        </PublicRoute>
+    }
+/>
 
-        <Route path="/login" element={<Login />} />
-
-        <Route path="/register" element={<Register />} />
+       <Route
+    path="/login"
+    element={
+        <GuestRoute>
+            <Login />
+        </GuestRoute>
+    }
+/>
 
         <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
+    path="/register"
+    element={
+        <GuestRoute>
+            <Register />
+        </GuestRoute>
+    }
+/>
+
+        <Route
+    path="/forgot-password"
+    element={
+        <GuestRoute>
+            <ForgotPassword />
+        </GuestRoute>
+    }
+/>
 
         <Route
           path="/dashboard"
