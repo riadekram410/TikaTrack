@@ -8,6 +8,8 @@ import userRoutes from "./routes/users.js";
 import authRouter from "./routes/auth.js";
 import childRoutes from "./routes/children.js";
 import scheduleRoutes from "./routes/schedules.js";
+import carbonFootprint from "./middlewares/carbonFootprint.js";
+
 
 const app = express();
 
@@ -24,6 +26,9 @@ app.use(
         origin: process.env.ALLOWED_ORIGIN,
     })
 );
+// Carbon footprint tracking
+app.use(carbonFootprint);
+
 
 // MongoDB connection
 const connectDB = async () => {
