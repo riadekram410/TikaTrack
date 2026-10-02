@@ -2,40 +2,110 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
+const API = "http://localhost:5000/api";
+
 function Dashboard() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [children, setChildren] = useState([]);
+  const [vaccines, setVaccines] = useState([]);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ================= FETCH DASHBOARD DATA =================
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/users/profile",
-          {
+        setLoading(true);
+        setError("");
+
+        const [
+          profileResponse,
+          childrenResponse,
+          scheduleResponse,
+        ] = await Promise.all([
+          fetch(`${API}/users/profile`, {
             method: "GET",
             credentials: "include",
-          }
-        );
+            cache: "no-store",
+          }),
 
-        if (!response.ok) {
-          return;
+          fetch(`${API}/children`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          }),
+
+          fetch(`${API}/schedules`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          }),
+        ]);
+
+        // ================= PROFILE =================
+        if (profileResponse.ok) {
+          const profileData =
+            await profileResponse.json();
+
+          setUser(profileData.user);
         }
 
-        const data = await response.json();
-        setUser(data.user);
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
+        // ================= CHILDREN =================
+        if (childrenResponse.ok) {
+          const childData =
+            await childrenResponse.json();
+
+          setChildren(
+            childData.children || []
+          );
+        }
+
+        // ================= SCHEDULES =================
+        if (scheduleResponse.ok) {
+          const scheduleData =
+            await scheduleResponse.json();
+
+          setVaccines(
+            scheduleData.schedules || []
+          );
+        }
+
+        // ================= AUTHENTICATION =================
+        if (
+          !profileResponse.ok &&
+          childrenResponse.status === 401
+        ) {
+          navigate("/login", {
+            replace: true,
+          });
+
+          return;
+        }
+      } catch (err) {
+        console.error(
+          "Failed to fetch dashboard data:",
+          err
+        );
+
+        setError(
+          "Unable to load dashboard data."
+        );
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserProfile();
-  }, []);
+    fetchDashboardData();
+  }, [navigate]);
 
+  // ================= LOGOUT =================
   const handleLogout = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/logout",
+        `${API}/auth/logout`,
         {
           method: "POST",
           credentials: "include",
@@ -45,44 +115,278 @@ function Dashboard() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("Logout failed:", data.error);
+        console.error(
+          "Logout failed:",
+          data.error
+        );
+
         return;
       }
 
       console.log(data.message);
 
-      navigate("/login");
+      navigate("/login", {
+        replace: true,
+      });
     } catch (err) {
-      console.error("Logout error:", err);
+      console.error(
+        "Logout error:",
+        err
+      );
     }
   };
 
-  const upcomingVaccinations = [
-    {
-      vaccine: "BCG",
-      child: "Ahnaf Rahman",
-      date: "15 May 2025",
-      status: "Upcoming",
-    },
-    {
-      vaccine: "Penta-1",
-      child: "Ahnaf Rahman",
-      date: "20 May 2025",
-      status: "Upcoming",
-    },
-    {
-      vaccine: "PCV-1",
-      child: "Ahnaf Rahman",
-      date: "20 May 2025",
-      status: "Upcoming",
-    },
-    {
-      vaccine: "MR",
-      child: "Ahnaf Rahman",
-      date: "15 Dec 2025",
-      status: "Upcoming",
-    },
-  ];
+  // ================= VACCINE STATUS =================
+  const getVaccineStatus = (vaccine) => {
+    if (vaccine.status === "Completed") {
+      return "Completed";
+    }
+
+    if (vaccine.status === "Overdue") {
+      return "Overdue";
+    }
+
+    if (vaccine.status === "Upcoming") {
+      return "Upcoming";
+    }
+
+    const vaccineDate =
+      new Date(vaccine.date);
+
+    const today = new Date();
+
+    if (vaccineDate < today) {
+      return "Overdue";
+    }
+
+    return "Upcoming";
+  };
+
+  // ================= COUNTS =================
+  const completedVaccines =
+    vaccines.filter(
+      (vaccine) =>
+        getVaccineStatus(vaccine) ===
+        "Completed"
+    );
+
+  const upcomingVaccines =
+    vaccines.filter(
+      (vaccine) =>
+        getVaccineStatus(vaccine) ===
+        "Upcoming"
+    );
+
+  const overdueVaccines =
+    vaccines.filter(
+      (vaccine) =>
+        getVaccineStatus(vaccine) ===
+        "Overdue"
+    );
+
+  const totalVaccines =
+    vaccines.length;
+
+  const completedCount =
+    completedVaccines.length;
+
+  const upcomingCount =
+    upcomingVaccines.length;
+
+  const overdueCount =
+    overdueVaccines.length;
+
+  const progress =
+    totalVaccines > 0
+      ? Math.round(
+          (completedCount /
+            totalVaccines) *
+            100
+        )
+      : 0;
+
+  // ================= UPCOMING VACCINATIONS =================
+  const nextVaccinations =
+    [...upcomingVaccines]
+      .sort(
+        (a, b) =>
+          new Date(a.date) -
+          new Date(b.date)
+      )
+      .slice(0, 5);
+
+  // ================= CHILD NAME =================
+  const getChildName = (vaccine) => {
+    if (
+      vaccine.childId &&
+      typeof vaccine.childId ===
+        "object"
+    ) {
+      return (
+        vaccine.childId.name ||
+        "Child"
+      );
+    }
+
+    const child = children.find(
+      (item) =>
+        String(item._id) ===
+        String(vaccine.childId)
+    );
+
+    return (
+      child?.name ||
+      "Child"
+    );
+  };
+
+  // ================= FORMAT DATE =================
+  const formatDate = (date) => {
+    if (!date) {
+      return "-";
+    }
+
+    return new Date(
+      date
+    ).toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  };
+
+  // ================= AGE =================
+  const calculateAge = (
+    dateOfBirth
+  ) => {
+    if (!dateOfBirth) {
+      return "";
+    }
+
+    const dob =
+      new Date(dateOfBirth);
+
+    const today =
+      new Date();
+
+    let years =
+      today.getFullYear() -
+      dob.getFullYear();
+
+    let months =
+      today.getMonth() -
+      dob.getMonth();
+
+    if (
+      today.getDate() <
+      dob.getDate()
+    ) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years > 0) {
+      return `${years} Year${
+        years > 1 ? "s" : ""
+      } ${months} Month${
+        months !== 1 ? "s" : ""
+      }`;
+    }
+
+    return `${months} Month${
+      months !== 1 ? "s" : ""
+    }`;
+  };
+
+  // ================= NEXT VACCINE =================
+  const getNextVaccine = (
+    childId
+  ) => {
+    const childSchedules =
+      vaccines.filter(
+        (vaccine) =>
+          String(
+            vaccine.childId?._id ||
+              vaccine.childId
+          ) ===
+          String(childId)
+      );
+
+    const upcoming =
+      childSchedules
+        .filter(
+          (vaccine) =>
+            getVaccineStatus(
+              vaccine
+            ) === "Upcoming"
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.date) -
+            new Date(b.date)
+        );
+
+    return (
+      upcoming[0]?.name ||
+      "No upcoming vaccine"
+    );
+  };
+
+  // ================= VIEW CHILD =================
+  const handleViewChild = (
+    childId
+  ) => {
+    navigate(
+      `/child-details?id=${childId}`
+    );
+  };
+
+  // ================= LOADING =================
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        <div
+          style={{
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          Loading dashboard...
+        </div>
+      </div>
+    );
+  }
+
+  // ================= ERROR =================
+  if (error) {
+    return (
+      <div className="dashboard-page">
+        <div
+          style={{
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          <p>{error}</p>
+
+          <button
+            onClick={() =>
+              window.location.reload()
+            }
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-page">
@@ -96,52 +400,108 @@ function Dashboard() {
 
         <nav className="sidebar-nav">
 
-          <a href="/dashboard" className="sidebar-link active">
-            <span className="sidebar-icon">⌂</span>
-            <span>Dashboard</span>
+          <a
+            href="/dashboard"
+            className="sidebar-link active"
+          >
+            <span className="sidebar-icon">
+              ⌂
+            </span>
+
+            <span>
+              Dashboard
+            </span>
           </a>
 
-          <a href="/children" className="sidebar-link">
-            <span className="sidebar-icon">♙</span>
-            <span>Children</span>
+          <a
+            href="/children"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ♙
+            </span>
+
+            <span>
+              Children
+            </span>
           </a>
 
-          <a href="/schedule" className="sidebar-link">
-            <span className="sidebar-icon">▣</span>
-            <span>Schedule</span>
+          <a
+            href="/schedule"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ▣
+            </span>
+
+            <span>
+              Schedule
+            </span>
           </a>
 
-          <a href="/reminders" className="sidebar-link">
-            <span className="sidebar-icon">♧</span>
-            <span>Reminders</span>
+          <a
+            href="/reminders"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ♧
+            </span>
+
+            <span>
+              Reminders
+            </span>
           </a>
 
-          <a href="/reports" className="sidebar-link">
-            <span className="sidebar-icon">▥</span>
-            <span>Reports</span>
+          <a
+            href="/reports"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ▥
+            </span>
+
+            <span>
+              Reports
+            </span>
           </a>
 
-          <a href="/profile" className="sidebar-link">
-            <span className="sidebar-icon">◉</span>
-            <span>Profile</span>
+          <a
+            href="/profile"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ◉
+            </span>
+
+            <span>
+              Profile
+            </span>
           </a>
 
-          <a href="/settings" className="sidebar-link">
-            <span className="sidebar-icon">⚙</span>
-            <span>Settings</span>
+          <a
+            href="/settings"
+            className="sidebar-link"
+          >
+            <span className="sidebar-icon">
+              ⚙
+            </span>
+
+            <span>
+              Settings
+            </span>
           </a>
 
         </nav>
 
+        {/* ================= LOGOUT ================= */}
         
 
       </aside>
 
-
       {/* ================= MAIN CONTENT ================= */}
       <main className="dashboard-main">
 
-        {/* TOPBAR */}
+        {/* ================= TOPBAR ================= */}
         <header className="dashboard-topbar">
 
           <div className="mobile-menu-button">
@@ -150,65 +510,98 @@ function Dashboard() {
 
           <div className="topbar-spacer"></div>
 
-          <button className="notification-button">
+          {/* NOTIFICATION */}
+          <button
+            className="notification-button"
+            onClick={() =>
+              navigate("/reminders")
+            }
+            title="View reminders"
+          >
             ♧
-            <span className="notification-dot"></span>
+
+            {upcomingCount > 0 && (
+              <span className="notification-dot"></span>
+            )}
           </button>
 
+          {/* SIMPLE USER INFO */}
           <div className="user-profile">
 
             <div className="user-avatar">
-              {user?.name?.charAt(0).toUpperCase() || "G"}
+              {user?.name
+                ?.charAt(0)
+                .toUpperCase() ||
+                "G"}
             </div>
 
             <div className="user-info">
-              <strong>{user?.name || "Guardian"}</strong>
-              <span>Guardian</span>
+
+              <strong>
+                {user?.name ||
+                  "Guardian"}
+              </strong>
+
+              <span>
+                Guardian
+              </span>
+
             </div>
 
-            <span className="user-arrow">
-              ▼
-            </span>
-
+           
           </div>
 
         </header>
 
-
-        {/* CONTENT */}
+        {/* ================= CONTENT ================= */}
         <div className="dashboard-content">
 
-          {/* WELCOME */}
+          {/* ================= WELCOME ================= */}
           <section className="dashboard-welcome">
 
             <div>
+
               <span className="welcome-label">
                 GUARDIAN DASHBOARD
               </span>
 
               <h1>
-                Welcome back, <span>{user?.name || "Guardian"}!</span>
+                Welcome back,{" "}
+                <span>
+                  {user?.name ||
+                    "Guardian"}
+                  !
+                </span>
               </h1>
 
               <p>
-                Here's a quick overview of your children's
+                Here's a quick overview
+                of your children's
                 vaccination schedule.
               </p>
+
             </div>
 
-            <button className="add-child-button">
-              + Add Child
-            </button>
+            
 
           </section>
-
 
           {/* ================= SUMMARY CARDS ================= */}
           <section className="summary-grid">
 
-            <div className="summary-card">
+            {/* CHILDREN */}
+            <div
+              className="summary-card"
+              onClick={() =>
+                navigate("/children")
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
 
               <div className="summary-card-top">
+
                 <div className="summary-icon green">
                   ♙
                 </div>
@@ -216,10 +609,11 @@ function Dashboard() {
                 <span className="summary-arrow">
                   →
                 </span>
+
               </div>
 
               <div className="summary-number">
-                2
+                {children.length}
               </div>
 
               <div className="summary-title">
@@ -232,10 +626,19 @@ function Dashboard() {
 
             </div>
 
-
-            <div className="summary-card">
+            {/* UPCOMING */}
+            <div
+              className="summary-card"
+              onClick={() =>
+                navigate("/schedule")
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
 
               <div className="summary-card-top">
+
                 <div className="summary-icon orange">
                   ♧
                 </div>
@@ -243,10 +646,11 @@ function Dashboard() {
                 <span className="summary-arrow">
                   →
                 </span>
+
               </div>
 
               <div className="summary-number">
-                5
+                {upcomingCount}
               </div>
 
               <div className="summary-title">
@@ -259,10 +663,19 @@ function Dashboard() {
 
             </div>
 
-
-            <div className="summary-card">
+            {/* COMPLETED */}
+            <div
+              className="summary-card"
+              onClick={() =>
+                navigate("/reports")
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
 
               <div className="summary-card-top">
+
                 <div className="summary-icon blue">
                   ✓
                 </div>
@@ -270,10 +683,11 @@ function Dashboard() {
                 <span className="summary-arrow">
                   →
                 </span>
+
               </div>
 
               <div className="summary-number">
-                3
+                {completedCount}
               </div>
 
               <div className="summary-title">
@@ -286,10 +700,19 @@ function Dashboard() {
 
             </div>
 
-
-            <div className="summary-card">
+            {/* ON SCHEDULE */}
+            <div
+              className="summary-card"
+              onClick={() =>
+                navigate("/reports")
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
 
               <div className="summary-card-top">
+
                 <div className="summary-icon purple">
                   %
                 </div>
@@ -297,10 +720,11 @@ function Dashboard() {
                 <span className="summary-arrow">
                   →
                 </span>
+
               </div>
 
               <div className="summary-number">
-                100%
+                {progress}%
               </div>
 
               <div className="summary-title">
@@ -308,23 +732,23 @@ function Dashboard() {
               </div>
 
               <p>
-                Vaccinations on time
+                Vaccinations completed
               </p>
 
             </div>
 
           </section>
 
-
           {/* ================= MAIN GRID ================= */}
           <section className="dashboard-grid">
 
-            {/* UPCOMING VACCINATIONS */}
+            {/* ================= UPCOMING VACCINATIONS ================= */}
             <div className="dashboard-card upcoming-card">
 
               <div className="card-header">
 
                 <div>
+
                   <span className="card-label">
                     SCHEDULE
                   </span>
@@ -332,67 +756,94 @@ function Dashboard() {
                   <h2>
                     Upcoming Vaccinations
                   </h2>
+
                 </div>
 
-                <a href="/schedule" className="view-all">
+                <a
+                  href="/schedule"
+                  className="view-all"
+                >
                   View all →
                 </a>
 
               </div>
 
-
               <div className="vaccination-list">
 
-                {upcomingVaccinations.map((item, index) => (
+                {nextVaccinations.length ===
+                0 ? (
 
                   <div
-                    className="vaccination-item"
-                    key={index}
+                    style={{
+                      padding: "20px",
+                      textAlign:
+                        "center",
+                    }}
                   >
-
-                    <div className="vaccine-icon">
-                      💉
-                    </div>
-
-                    <div className="vaccine-info">
-
-                      <strong>
-                        {item.vaccine}
-                      </strong>
-
-                      <span>
-                        {item.child}
-                      </span>
-
-                    </div>
-
-                    <div className="vaccine-date">
-
-                      <strong>
-                        {item.date}
-                      </strong>
-
-                      <span className="status-upcoming">
-                        {item.status}
-                      </span>
-
-                    </div>
-
+                    No upcoming
+                    vaccinations.
                   </div>
 
-                ))}
+                ) : (
+
+                  nextVaccinations.map(
+                    (item) => (
+
+                      <div
+                        className="vaccination-item"
+                        key={item._id}
+                      >
+
+                        <div className="vaccine-icon">
+                          💉
+                        </div>
+
+                        <div className="vaccine-info">
+
+                          <strong>
+                            {item.name}
+                          </strong>
+
+                          <span>
+                            {getChildName(
+                              item
+                            )}
+                          </span>
+
+                        </div>
+
+                        <div className="vaccine-date">
+
+                          <strong>
+                            {formatDate(
+                              item.date
+                            )}
+                          </strong>
+
+                          <span className="status-upcoming">
+                            Upcoming
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    )
+                  )
+
+                )}
 
               </div>
 
             </div>
 
-
-            {/* PROGRESS CARD */}
+            {/* ================= PROGRESS ================= */}
             <div className="dashboard-card progress-card">
 
               <div className="card-header">
 
                 <div>
+
                   <span className="card-label">
                     OVERVIEW
                   </span>
@@ -400,23 +851,35 @@ function Dashboard() {
                   <h2>
                     Vaccination Progress
                   </h2>
+
                 </div>
 
-                <a href="/reports" className="view-all">
+                <a
+                  href="/reports"
+                  className="view-all"
+                >
                   Details →
                 </a>
 
               </div>
 
-
               <div className="progress-content">
 
-                <div className="progress-circle">
+                <div
+                  className="progress-circle"
+                  style={{
+                    background:
+                      `conic-gradient(
+                        #198754 ${progress}%,
+                        #e8eeee ${progress}% 100%
+                      )`,
+                  }}
+                >
 
                   <div className="progress-inner">
 
                     <strong>
-                      60%
+                      {progress}%
                     </strong>
 
                     <span>
@@ -427,114 +890,51 @@ function Dashboard() {
 
                 </div>
 
-
                 <div className="progress-legend">
 
                   <div className="legend-item">
+
                     <span className="legend-dot completed"></span>
-                    <span>Completed</span>
-                    <strong>3</strong>
+
+                    <span>
+                      Completed
+                    </span>
+
+                    <strong>
+                      {completedCount}
+                    </strong>
+
                   </div>
 
                   <div className="legend-item">
+
                     <span className="legend-dot upcoming"></span>
-                    <span>Upcoming</span>
-                    <strong>2</strong>
+
+                    <span>
+                      Upcoming
+                    </span>
+
+                    <strong>
+                      {upcomingCount}
+                    </strong>
+
                   </div>
 
                   <div className="legend-item">
+
                     <span className="legend-dot overdue"></span>
-                    <span>Overdue</span>
-                    <strong>0</strong>
+
+                    <span>
+                      Overdue
+                    </span>
+
+                    <strong>
+                      {overdueCount}
+                    </strong>
+
                   </div>
 
                 </div>
-
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* ================= CHILDREN ================= */}
-          <section className="dashboard-card children-card">
-
-            <div className="card-header">
-
-              <div>
-                <span className="card-label">
-                  MY CHILDREN
-                </span>
-
-                <h2>
-                  Children Overview
-                </h2>
-              </div>
-
-              <button className="small-add-button">
-                + Add Child
-              </button>
-
-            </div>
-
-
-            <div className="children-grid">
-
-              <div className="child-item">
-
-                <div className="child-avatar">
-                  AR
-                </div>
-
-                <div className="child-details">
-
-                  <h3>
-                    Ahnaf Rahman
-                  </h3>
-
-                  <p>
-                    Male · 1 Year 2 Months
-                  </p>
-
-                  <span>
-                    Next vaccine: Penta-1
-                  </span>
-
-                </div>
-
-                <button className="child-view-button">
-                  View →
-                </button>
-
-              </div>
-
-
-              <div className="child-item">
-
-                <div className="child-avatar">
-                  SA
-                </div>
-
-                <div className="child-details">
-
-                  <h3>
-                    Sara Akter
-                  </h3>
-
-                  <p>
-                    Female · 8 Months
-                  </p>
-
-                  <span>
-                    Next vaccine: PCV-2
-                  </span>
-
-                </div>
-
-                <button className="child-view-button">
-                  View →
-                </button>
 
               </div>
 
@@ -546,32 +946,61 @@ function Dashboard() {
 
       </main>
 
-
       {/* ================= MOBILE NAVIGATION ================= */}
       <nav className="mobile-bottom-nav">
 
-        <a href="/dashboard" className="mobile-nav-link active">
-          <span>⌂</span>
+        <a
+          href="/dashboard"
+          className="mobile-nav-link active"
+        >
+          <span>
+            ⌂
+          </span>
+
           Dashboard
         </a>
 
-        <a href="/children" className="mobile-nav-link">
-          <span>♙</span>
+        <a
+          href="/children"
+          className="mobile-nav-link"
+        >
+          <span>
+            ♙
+          </span>
+
           Children
         </a>
 
-        <a href="/schedule" className="mobile-nav-link">
-          <span>▣</span>
+        <a
+          href="/schedule"
+          className="mobile-nav-link"
+        >
+          <span>
+            ▣
+          </span>
+
           Schedule
         </a>
 
-        <a href="/reminders" className="mobile-nav-link">
-          <span>♧</span>
+        <a
+          href="/reminders"
+          className="mobile-nav-link"
+        >
+          <span>
+            ♧
+          </span>
+
           Reminders
         </a>
 
-        <a href="/profile" className="mobile-nav-link">
-          <span>◉</span>
+        <a
+          href="/profile"
+          className="mobile-nav-link"
+        >
+          <span>
+            ◉
+          </span>
+
           Profile
         </a>
 
