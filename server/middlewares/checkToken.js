@@ -16,8 +16,8 @@ const checkToken = (req, res, next) => {
             if (err) {
                 res.clearCookie("token", {
                     httpOnly: true,
-                    secure: true,
-                    sameSite: "none",
+                    secure: false,
+                    sameSite: "lax",
                     path: "/",
                 });
 

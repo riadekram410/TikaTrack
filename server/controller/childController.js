@@ -1,5 +1,6 @@
 import Child from "../model/child.js";
-
+import Schedule from "../model/schedule.js";
+import { generateVaccineSchedule } from "../utils/vaccineSchedule.js";
 // Create Child
 export const createChild = async (req, res) => {
     try {
@@ -27,6 +28,14 @@ export const createChild = async (req, res) => {
         });
 
         await child.save();
+
+        // Automatically generate vaccination schedule
+        const vaccineSchedule = generateVaccineSchedule(
+            dateOfBirth,
+            child._id
+        );
+
+        await Schedule.insertMany(vaccineSchedule);
 
         return res.status(201).json({
             message: "Child added successfully",

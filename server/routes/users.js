@@ -8,6 +8,7 @@ import checkToken from "../middlewares/checkToken.js";
 const router = express.Router();
 
 // Register
+//OST http://localhost:5000/api/users
 router.post("/", createUser);
 
 // Protected profile

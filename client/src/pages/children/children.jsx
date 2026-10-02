@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
+
 import "./children.css";
 
 function Children() {
+  const navigate = useNavigate();
+
   const [children, setChildren] = useState([]);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
-  // Add Child form states
+  // Add/Edit Child form states
   const [showAddForm, setShowAddForm] = useState(false);
+
   const [formLoading, setFormLoading] = useState(false);
+
   const [formError, setFormError] = useState("");
+
+  const [editingChild, setEditingChild] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,6 +31,7 @@ function Children() {
   });
 
   // ================= FETCH CHILDREN =================
+
   const fetchChildren = async () => {
     try {
       setLoading(true);
@@ -64,8 +76,11 @@ function Children() {
     }));
   };
 
+  // ================= OPEN ADD FORM =================
+
   const openAddForm = () => {
     setFormError("");
+    setEditingChild(null);
 
     setFormData({
       name: "",
@@ -78,16 +93,19 @@ function Children() {
     setShowAddForm(true);
   };
 
+  // ================= CLOSE FORM =================
+
   const closeAddForm = () => {
     if (formLoading) return;
 
     setShowAddForm(false);
     setFormError("");
+    setEditingChild(null);
   };
 
-  // ================= CREATE CHILD =================
+  // ================= CREATE / UPDATE CHILD =================
 
-  const handleAddChild = async (event) => {
+  const handleSaveChild = async (event) => {
     event.preventDefault();
 
     setFormError("");
@@ -101,6 +119,7 @@ function Children() {
       setFormError(
         "Name, date of birth, gender and guardian are required."
       );
+
       return;
     }
 
@@ -108,13 +127,18 @@ function Children() {
       setFormLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/children",
+        editingChild
+          ? `http://localhost:5000/api/children/${editingChild._id}`
+          : "http://localhost:5000/api/children",
         {
-          method: "POST",
+          method: editingChild ? "PUT" : "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           credentials: "include",
+
           body: JSON.stringify(formData),
         }
       );
@@ -122,12 +146,21 @@ function Children() {
       const data = await response.json();
 
       if (!response.ok) {
-        setFormError(data.error || "Failed to add child");
+        setFormError(
+          data.error ||
+            (editingChild
+              ? "Failed to update child"
+              : "Failed to add child")
+        );
+
         return;
       }
 
-      // Close form
+      // Close modal
       setShowAddForm(false);
+
+      // Clear editing state
+      setEditingChild(null);
 
       // Reset form
       setFormData({
@@ -138,14 +171,52 @@ function Children() {
         guardian: "",
       });
 
-      // Refresh children list
+      // Refresh children
       await fetchChildren();
     } catch (err) {
-      console.error("Error adding child:", err);
+      console.error(
+        editingChild
+          ? "Error updating child:"
+          : "Error adding child:",
+        err
+      );
+
       setFormError("Unable to connect to server");
     } finally {
       setFormLoading(false);
     }
+  };
+
+  // ================= VIEW CHILD =================
+
+  const handleViewChild = (childId) => {
+    navigate(`/child-details?id=${childId}`);
+  };
+
+  // ================= EDIT CHILD =================
+
+  const handleEditChild = (child) => {
+    setFormError("");
+
+    setEditingChild(child);
+
+    setFormData({
+      name: child.name || "",
+
+      dateOfBirth: child.dateOfBirth
+        ? new Date(child.dateOfBirth)
+            .toISOString()
+            .split("T")[0]
+        : "",
+
+      gender: child.gender || "",
+
+      bloodGroup: child.bloodGroup || "",
+
+      guardian: child.guardian || "",
+    });
+
+    setShowAddForm(true);
   };
 
   // ================= HELPERS =================
@@ -156,7 +227,9 @@ function Children() {
     const words = name.trim().split(" ");
 
     if (words.length === 1) {
-      return words[0].substring(0, 2).toUpperCase();
+      return words[0]
+        .substring(0, 2)
+        .toUpperCase();
     }
 
     return (
@@ -168,25 +241,32 @@ function Children() {
   const formatDate = (date) => {
     if (!date) return "Not available";
 
-    return new Date(date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
+    );
   };
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return "Age unavailable";
 
     const dob = new Date(dateOfBirth);
+
     const today = new Date();
 
-    let years = today.getFullYear() - dob.getFullYear();
-    let months = today.getMonth() - dob.getMonth();
+    let years =
+      today.getFullYear() -
+      dob.getFullYear();
 
-    if (
-      today.getDate() < dob.getDate()
-    ) {
+    let months =
+      today.getMonth() -
+      dob.getMonth();
+
+    if (today.getDate() < dob.getDate()) {
       months--;
     }
 
@@ -212,6 +292,7 @@ function Children() {
     <div className="children-page">
 
       {/* ================= SIDEBAR ================= */}
+
       <aside className="children-sidebar">
 
         <div className="children-sidebar-logo">
@@ -280,11 +361,12 @@ function Children() {
 
       </aside>
 
-
       {/* ================= MAIN ================= */}
+
       <main className="children-main">
 
-        {/* TOPBAR */}
+        {/* ================= TOPBAR ================= */}
+
         <header className="children-topbar">
 
           <div className="children-topbar-spacer"></div>
@@ -313,14 +395,16 @@ function Children() {
 
         </header>
 
+        {/* ================= CONTENT ================= */}
 
-        {/* CONTENT */}
         <div className="children-content">
 
-          {/* PAGE HEADER */}
+          {/* ================= PAGE HEADER ================= */}
+
           <section className="children-page-header">
 
             <div>
+
               <span className="children-label">
                 FAMILY
               </span>
@@ -330,9 +414,10 @@ function Children() {
               </h1>
 
               <p>
-                Manage your children's profiles and vaccination
-                information.
+                Manage your children's profiles and
+                vaccination information.
               </p>
+
             </div>
 
             <button
@@ -345,8 +430,8 @@ function Children() {
 
           </section>
 
-
           {/* ================= SUMMARY ================= */}
+
           <section className="children-summary">
 
             <div className="children-summary-card">
@@ -367,7 +452,6 @@ function Children() {
 
             </div>
 
-
             <div className="children-summary-card">
 
               <div className="children-summary-icon blue">
@@ -383,7 +467,6 @@ function Children() {
               </div>
 
             </div>
-
 
             <div className="children-summary-card">
 
@@ -403,46 +486,48 @@ function Children() {
 
           </section>
 
-
           {/* ================= CHILDREN LIST ================= */}
+
           <section className="children-list-section">
 
-            <div className="children-section-header">
+            <div className="children-list-header">
 
               <div>
-                <span>
-                  CHILD PROFILES
+
+                <span className="children-label">
+                  REGISTERED
                 </span>
 
                 <h2>
                   Your Children
                 </h2>
+
               </div>
 
-              <div className="children-count">
+              <span className="children-count">
                 {children.length} Children
-              </div>
+              </span>
 
             </div>
 
-
             {/* LOADING */}
+
             {loading && (
               <p>
                 Loading children...
               </p>
             )}
 
-
             {/* ERROR */}
+
             {!loading && error && (
               <p>
                 {error}
               </p>
             )}
 
-
             {/* NO CHILDREN */}
+
             {!loading &&
               !error &&
               children.length === 0 && (
@@ -451,11 +536,12 @@ function Children() {
                 </p>
               )}
 
-
             {/* CHILDREN CARDS */}
+
             {!loading &&
               !error &&
               children.length > 0 && (
+
                 <div className="children-cards">
 
                   {children.map((child) => (
@@ -465,7 +551,8 @@ function Children() {
                       key={child._id}
                     >
 
-                      {/* CARD TOP */}
+                      {/* ================= CARD TOP ================= */}
+
                       <div className="child-card-top">
 
                         <div className="child-large-avatar">
@@ -500,8 +587,8 @@ function Children() {
 
                       </div>
 
+                      {/* ================= PROGRESS ================= */}
 
-                      {/* PROGRESS */}
                       <div className="child-progress-section">
 
                         <div className="child-progress-header">
@@ -533,8 +620,8 @@ function Children() {
 
                       </div>
 
+                      {/* ================= NEXT VACCINE ================= */}
 
-                      {/* NEXT VACCINE */}
                       <div className="next-vaccine">
 
                         <div className="next-vaccine-icon">
@@ -567,16 +654,28 @@ function Children() {
 
                       </div>
 
+                      {/* ================= ACTIONS ================= */}
 
-                      {/* ACTIONS */}
                       <div className="child-card-actions">
 
-                        <button className="view-child-button">
+                        <button
+                          className="view-child-button"
+                          onClick={() =>
+                            handleViewChild(
+                              child._id
+                            )
+                          }
+                        >
                           View Details
                           <span>→</span>
                         </button>
 
-                        <button className="edit-child-button">
+                        <button
+                          className="edit-child-button"
+                          onClick={() =>
+                            handleEditChild(child)
+                          }
+                        >
                           Edit Profile
                         </button>
 
@@ -587,12 +686,13 @@ function Children() {
                   ))}
 
                 </div>
+
               )}
 
           </section>
 
-
           {/* ================= ADD CHILD CARD ================= */}
+
           <section className="add-child-section">
 
             <div className="add-child-content">
@@ -608,8 +708,8 @@ function Children() {
                 </h3>
 
                 <p>
-                  Add your child's information to start tracking
-                  their vaccinations.
+                  Add your child's information to
+                  start tracking their vaccinations.
                 </p>
 
               </div>
@@ -629,8 +729,8 @@ function Children() {
 
       </main>
 
-
       {/* ================= MOBILE NAV ================= */}
+
       <nav className="children-mobile-nav">
 
         <a href="/dashboard">
@@ -663,9 +763,10 @@ function Children() {
 
       </nav>
 
+      {/* ================= ADD / EDIT CHILD MODAL ================= */}
 
-      {/* ================= ADD CHILD MODAL ================= */}
       {showAddForm && (
+
         <div
           className="add-child-modal-overlay"
           onClick={closeAddForm}
@@ -681,18 +782,23 @@ function Children() {
             <div className="add-child-modal-header">
 
               <div>
+
                 <span>
                   FAMILY
                 </span>
 
                 <h2>
-                  Add Child
+                  {editingChild
+                    ? "Edit Child Profile"
+                    : "Add Child"}
                 </h2>
 
                 <p>
-                  Enter your child's information
-                  below.
+                  {editingChild
+                    ? "Update your child's information below."
+                    : "Enter your child's information below."}
                 </p>
+
               </div>
 
               <button
@@ -705,8 +811,9 @@ function Children() {
 
             </div>
 
+            <form onSubmit={handleSaveChild}>
 
-            <form onSubmit={handleAddChild}>
+              {/* CHILD NAME */}
 
               <div className="add-child-form-group">
 
@@ -724,6 +831,7 @@ function Children() {
 
               </div>
 
+              {/* DOB + GENDER */}
 
               <div className="add-child-form-row">
 
@@ -742,7 +850,6 @@ function Children() {
 
                 </div>
 
-
                 <div className="add-child-form-group">
 
                   <label>
@@ -754,6 +861,7 @@ function Children() {
                     value={formData.gender}
                     onChange={handleInputChange}
                   >
+
                     <option value="">
                       Select gender
                     </option>
@@ -776,6 +884,7 @@ function Children() {
 
               </div>
 
+              {/* BLOOD GROUP + GUARDIAN */}
 
               <div className="add-child-form-row">
 
@@ -831,7 +940,6 @@ function Children() {
 
                 </div>
 
-
                 <div className="add-child-form-group">
 
                   <label>
@@ -850,14 +958,15 @@ function Children() {
 
               </div>
 
-
               {/* FORM ERROR */}
+
               {formError && (
                 <p className="add-child-form-error">
                   {formError}
                 </p>
               )}
 
+              {/* FORM BUTTONS */}
 
               <div className="add-child-form-actions">
 
@@ -875,9 +984,13 @@ function Children() {
                   className="add-child-save-button"
                   disabled={formLoading}
                 >
+
                   {formLoading
                     ? "Saving..."
+                    : editingChild
+                    ? "Update Child"
                     : "Save Child"}
+
                 </button>
 
               </div>
@@ -887,6 +1000,7 @@ function Children() {
           </div>
 
         </div>
+
       )}
 
     </div>
