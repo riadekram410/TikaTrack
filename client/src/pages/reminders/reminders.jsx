@@ -265,11 +265,6 @@ function Reminders() {
 
           <div className="reminders-top-space"></div>
 
-          <button className="reminders-notification">
-            ♧
-            <span></span>
-          </button>
-
           <div className="reminders-user">
 
             <div className="reminders-user-avatar">
@@ -285,10 +280,6 @@ function Reminders() {
                 Guardian
               </small>
             </div>
-
-            <span className="reminders-user-arrow">
-              ▼
-            </span>
 
           </div>
 

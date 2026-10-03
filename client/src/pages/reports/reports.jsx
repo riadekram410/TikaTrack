@@ -242,11 +242,6 @@ function Reports() {
 
           <div className="reports-top-space"></div>
 
-          <button className="reports-notification">
-            ♧
-            <span></span>
-          </button>
-
           <div className="reports-user">
 
             <div className="reports-user-avatar">
@@ -260,10 +255,6 @@ function Reports() {
 
               <small>Guardian</small>
             </div>
-
-            <span className="reports-user-arrow">
-              ▼
-            </span>
 
           </div>
 

@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import "./settings.css";
 
 
 function Settings() {
+
     const navigate = useNavigate();
+
+
+    // ================= USER STATE =================
+
+    const [user, setUser] = useState(null);
+
 
     // ================= SETTINGS STATE =================
 
@@ -20,6 +28,7 @@ function Settings() {
 
     const [reminderDays, setReminderDays] =
         useState(3);
+
 
     // ================= UI STATE =================
 
@@ -37,60 +46,118 @@ function Settings() {
 
 
     // =====================================================
-    // LOAD SETTINGS
+    // LOAD PROFILE + SETTINGS
     // =====================================================
 
     const loadSettings = async () => {
+
         try {
+
             setLoading(true);
+
             setError("");
 
-            const response = await fetch(
-                "http://localhost:5000/api/users/settings",
-                {
-                    method: "GET",
-                    credentials: "include",
-                    cache: "no-store",
-                }
-            );
 
-            const data = await response.json();
+            // Load profile and settings at the same time
+            const [
+                profileResponse,
+                settingsResponse
+            ] = await Promise.all([
 
-            if (!response.ok) {
+                fetch(
+                    "http://localhost:5000/api/users/profile",
+                    {
+                        method: "GET",
+                        credentials: "include",
+                        cache: "no-store",
+                    }
+                ),
+
+                fetch(
+                    "http://localhost:5000/api/users/settings",
+                    {
+                        method: "GET",
+                        credentials: "include",
+                        cache: "no-store",
+                    }
+                ),
+
+            ]);
+
+
+            const profileData =
+                await profileResponse.json();
+
+            const settingsData =
+                await settingsResponse.json();
+
+
+            // ================= PROFILE =================
+
+            if (!profileResponse.ok) {
+
                 throw new Error(
-                    data.error ||
-                    "Failed to load settings"
+                    profileData.error ||
+                    "Failed to load profile"
                 );
+
             }
 
+
+            setUser(profileData.user);
+
+
+            // ================= SETTINGS =================
+
+            if (!settingsResponse.ok) {
+
+                throw new Error(
+                    settingsData.error ||
+                    "Failed to load settings"
+                );
+
+            }
+
+
             setVaccinationReminders(
-                data.settings.vaccinationReminders
+                settingsData.settings.vaccinationReminders
             );
+
 
             setEmailNotifications(
-                data.settings.emailNotifications
+                settingsData.settings.emailNotifications
             );
+
 
             setOverdueAlerts(
-                data.settings.overdueAlerts
+                settingsData.settings.overdueAlerts
             );
+
 
             setReminderDays(
-                data.settings.reminderDays
+                settingsData.settings.reminderDays
             );
 
+
         } catch (err) {
+
             console.error(
                 "Settings loading error:",
                 err
             );
 
+
             setError(
                 "Failed to load settings."
             );
+
+
         } finally {
+
             setLoading(false);
+
         }
+
     };
 
 
@@ -99,7 +166,9 @@ function Settings() {
     // =====================================================
 
     useEffect(() => {
+
         loadSettings();
+
     }, []);
 
 
@@ -120,10 +189,15 @@ function Settings() {
         newReminderDays =
             reminderDays
     ) => {
+
         try {
+
             setSaving(true);
+
             setMessage("");
+
             setError("");
+
 
             const response = await fetch(
                 "http://localhost:5000/api/users/settings",
@@ -138,6 +212,7 @@ function Settings() {
                     credentials: "include",
 
                     body: JSON.stringify({
+
                         vaccinationReminders:
                             newVaccinationReminders,
 
@@ -149,35 +224,50 @@ function Settings() {
 
                         reminderDays:
                             Number(newReminderDays),
+
                     }),
                 }
             );
 
-            const data = await response.json();
+
+            const data =
+                await response.json();
+
 
             if (!response.ok) {
+
                 throw new Error(
                     data.error ||
                     "Failed to save settings"
                 );
+
             }
+
 
             setMessage(
                 "Settings saved successfully."
             );
 
+
         } catch (err) {
+
             console.error(
                 "Settings saving error:",
                 err
             );
 
+
             setError(
                 "Failed to save settings."
             );
+
+
         } finally {
+
             setSaving(false);
+
         }
+
     };
 
 
@@ -187,12 +277,15 @@ function Settings() {
 
     const handleVaccinationReminderToggle =
         () => {
+
             const newValue =
                 !vaccinationReminders;
+
 
             setVaccinationReminders(
                 newValue
             );
+
 
             saveSettings(
                 newValue,
@@ -200,6 +293,7 @@ function Settings() {
                 overdueAlerts,
                 reminderDays
             );
+
         };
 
 
@@ -209,12 +303,15 @@ function Settings() {
 
     const handleEmailNotificationToggle =
         () => {
+
             const newValue =
                 !emailNotifications;
+
 
             setEmailNotifications(
                 newValue
             );
+
 
             saveSettings(
                 vaccinationReminders,
@@ -222,6 +319,7 @@ function Settings() {
                 overdueAlerts,
                 reminderDays
             );
+
         };
 
 
@@ -231,12 +329,15 @@ function Settings() {
 
     const handleOverdueAlertToggle =
         () => {
+
             const newValue =
                 !overdueAlerts;
+
 
             setOverdueAlerts(
                 newValue
             );
+
 
             saveSettings(
                 vaccinationReminders,
@@ -244,6 +345,7 @@ function Settings() {
                 newValue,
                 reminderDays
             );
+
         };
 
 
@@ -253,10 +355,15 @@ function Settings() {
 
     const handleReminderDaysChange =
         (event) => {
+
             const newValue =
                 Number(event.target.value);
 
-            setReminderDays(newValue);
+
+            setReminderDays(
+                newValue
+            );
+
 
             saveSettings(
                 vaccinationReminders,
@@ -264,6 +371,7 @@ function Settings() {
                 overdueAlerts,
                 newValue
             );
+
         };
 
 
@@ -272,7 +380,9 @@ function Settings() {
     // =====================================================
 
     const handleLogout = async () => {
+
         try {
+
             const response = await fetch(
                 "http://localhost:5000/api/auth/logout",
                 {
@@ -281,27 +391,37 @@ function Settings() {
                 }
             );
 
-            const data = await response.json();
+
+            const data =
+                await response.json();
+
 
             if (!response.ok) {
+
                 console.error(
                     "Logout failed:",
                     data.error
                 );
 
                 return;
+
             }
+
 
             navigate("/login", {
                 replace: true,
             });
 
+
         } catch (err) {
+
             console.error(
                 "Logout error:",
                 err
             );
+
         }
+
     };
 
 
@@ -310,27 +430,39 @@ function Settings() {
     // =====================================================
 
     const handleDeleteAccount = async () => {
+
         const confirmed =
             window.confirm(
                 "Are you sure you want to delete your account? This will permanently delete your account, children and vaccination schedules."
             );
 
+
         if (!confirmed) {
+
             return;
+
         }
+
 
         const secondConfirmation =
             window.confirm(
                 "This action cannot be undone. Continue?"
             );
 
+
         if (!secondConfirmation) {
+
             return;
+
         }
 
+
         try {
+
             setError("");
+
             setMessage("");
+
 
             const response = await fetch(
                 "http://localhost:5000/api/users/account",
@@ -340,34 +472,46 @@ function Settings() {
                 }
             );
 
-            const data = await response.json();
+
+            const data =
+                await response.json();
+
 
             if (!response.ok) {
+
                 throw new Error(
                     data.error ||
                     "Failed to delete account"
                 );
+
             }
+
 
             alert(
                 "Your account has been deleted successfully."
             );
 
+
             navigate("/login", {
                 replace: true,
             });
 
+
         } catch (err) {
+
             console.error(
                 "Delete account error:",
                 err
             );
 
+
             setError(
                 err.message ||
                 "Failed to delete account."
             );
+
         }
+
     };
 
 
@@ -376,8 +520,11 @@ function Settings() {
     // =====================================================
 
     if (loading) {
+
         return (
+
             <div className="settings-page">
+
                 <div
                     style={{
                         width: "100%",
@@ -389,10 +536,15 @@ function Settings() {
                         color: "#167c4c",
                     }}
                 >
+
                     Loading settings...
+
                 </div>
+
             </div>
+
         );
+
     }
 
 
@@ -401,15 +553,20 @@ function Settings() {
     // =====================================================
 
     return (
+
         <div className="settings-page">
+
 
             {/* ================= SIDEBAR ================= */}
 
             <aside className="settings-sidebar">
 
                 <div className="settings-logo">
+
                     Tika<span>Track</span>
+
                 </div>
+
 
                 <nav className="settings-nav">
 
@@ -418,30 +575,36 @@ function Settings() {
                         Dashboard
                     </a>
 
+
                     <a href="/children">
                         <span>♙</span>
                         Children
                     </a>
+
 
                     <a href="/schedule">
                         <span>▣</span>
                         Schedule
                     </a>
 
+
                     <a href="/reminders">
                         <span>♧</span>
                         Reminders
                     </a>
+
 
                     <a href="/reports">
                         <span>▥</span>
                         Reports
                     </a>
 
+
                     <a href="/profile">
                         <span>◉</span>
                         Profile
                     </a>
+
 
                     <a
                         href="/settings"
@@ -453,12 +616,16 @@ function Settings() {
 
                 </nav>
 
+
                 <button
                     className="settings-logout"
                     onClick={handleLogout}
                 >
+
                     <span>↪</span>
+
                     Logout
+
                 </button>
 
             </aside>
@@ -468,31 +635,44 @@ function Settings() {
 
             <main className="settings-main">
 
+
                 {/* TOPBAR */}
 
                 <header className="settings-topbar">
 
-                    <div className="settings-top-space"></div>
+                    <div className="settings-top-space">
+                    </div>
 
-                    <button className="settings-notification">
-                        ♧
-                        <span></span>
-                    </button>
 
                     <div className="settings-user">
 
+                        {/* Dynamic first letter */}
+
                         <div className="settings-user-avatar">
-                            F
+
+                            {user?.name
+                                ?.charAt(0)
+                                .toUpperCase() || "U"}
+
                         </div>
+
+
+                        {/* Dynamic backend name */}
 
                         <div className="settings-user-info">
-                            <strong>Guardian</strong>
-                            <small>TikaTrack User</small>
-                        </div>
 
-                        <span className="settings-user-arrow">
-                            ▼
-                        </span>
+                            <strong>
+
+                                {user?.name || "User"}
+
+                            </strong>
+
+
+                            <small>
+                                Guardian
+                            </small>
+
+                        </div>
 
                     </div>
 
@@ -503,6 +683,7 @@ function Settings() {
 
                 <div className="settings-content">
 
+
                     {/* HEADER */}
 
                     <div className="settings-page-header">
@@ -510,12 +691,16 @@ function Settings() {
                         <div>
 
                             <span className="settings-label">
+
                                 PREFERENCES
+
                             </span>
+
 
                             <h1>
                                 Settings
                             </h1>
+
 
                             <p>
                                 Manage your notification and vaccination reminder preferences.
@@ -529,6 +714,7 @@ function Settings() {
                     {/* SUCCESS MESSAGE */}
 
                     {message && (
+
                         <div
                             style={{
                                 marginBottom: "15px",
@@ -539,14 +725,18 @@ function Settings() {
                                 fontSize: "11px",
                             }}
                         >
+
                             {message}
+
                         </div>
+
                     )}
 
 
                     {/* ERROR MESSAGE */}
 
                     {error && (
+
                         <div
                             style={{
                                 marginBottom: "15px",
@@ -557,8 +747,11 @@ function Settings() {
                                 fontSize: "11px",
                             }}
                         >
+
                             {error}
+
                         </div>
+
                     )}
 
 
@@ -566,11 +759,15 @@ function Settings() {
 
                     <section className="settings-card">
 
+
                         <div className="settings-section-heading">
 
                             <div className="settings-section-icon">
+
                                 🔔
+
                             </div>
+
 
                             <div>
 
@@ -578,9 +775,11 @@ function Settings() {
                                     NOTIFICATIONS
                                 </span>
 
+
                                 <h2>
                                     Notification Preferences
                                 </h2>
+
 
                                 <p>
                                     Choose which vaccination notifications you want to receive.
@@ -593,6 +792,7 @@ function Settings() {
 
                         <div className="settings-options">
 
+
                             {/* Vaccination Reminders */}
 
                             <div className="settings-toggle-row">
@@ -601,17 +801,20 @@ function Settings() {
                                     🔔
                                 </div>
 
+
                                 <div className="option-content">
 
                                     <strong>
                                         Vaccination Reminders
                                     </strong>
 
+
                                     <span>
                                         Get notified when a vaccination is coming up.
                                     </span>
 
                                 </div>
+
 
                                 <button
                                     className={`toggle ${
@@ -624,7 +827,9 @@ function Settings() {
                                     }
                                     disabled={saving}
                                 >
+
                                     <div></div>
+
                                 </button>
 
                             </div>
@@ -638,17 +843,20 @@ function Settings() {
                                     ✉
                                 </div>
 
+
                                 <div className="option-content">
 
                                     <strong>
                                         Email Notifications
                                     </strong>
 
+
                                     <span>
                                         Receive important updates through email.
                                     </span>
 
                                 </div>
+
 
                                 <button
                                     className={`toggle ${
@@ -661,7 +869,9 @@ function Settings() {
                                     }
                                     disabled={saving}
                                 >
+
                                     <div></div>
+
                                 </button>
 
                             </div>
@@ -675,17 +885,20 @@ function Settings() {
                                     !
                                 </div>
 
+
                                 <div className="option-content">
 
                                     <strong>
                                         Overdue Alerts
                                     </strong>
 
+
                                     <span>
                                         Get notified if a vaccination becomes overdue.
                                     </span>
 
                                 </div>
+
 
                                 <button
                                     className={`toggle ${
@@ -698,7 +911,9 @@ function Settings() {
                                     }
                                     disabled={saving}
                                 >
+
                                     <div></div>
+
                                 </button>
 
                             </div>
@@ -712,11 +927,13 @@ function Settings() {
 
                     <section className="settings-card">
 
+
                         <div className="settings-section-heading">
 
                             <div className="settings-section-icon">
                                 ◷
                             </div>
+
 
                             <div>
 
@@ -724,9 +941,11 @@ function Settings() {
                                     REMINDERS
                                 </span>
 
+
                                 <h2>
                                     Reminder Preferences
                                 </h2>
+
 
                                 <p>
                                     Set how early you want to be reminded about vaccinations.
@@ -743,6 +962,7 @@ function Settings() {
                                 Remind me before vaccination
                             </label>
 
+
                             <select
                                 value={reminderDays}
                                 onChange={
@@ -755,13 +975,16 @@ function Settings() {
                                     1 day before
                                 </option>
 
+
                                 <option value="2">
                                     2 days before
                                 </option>
 
+
                                 <option value="3">
                                     3 days before
                                 </option>
+
 
                                 <option value="7">
                                     1 week before
@@ -778,15 +1001,18 @@ function Settings() {
 
                     <section className="settings-card danger-card">
 
+
                         <div className="danger-content">
 
                             <span>
                                 DANGER ZONE
                             </span>
 
+
                             <h2>
                                 Delete Account
                             </h2>
+
 
                             <p>
                                 Permanently delete your account, children and all vaccination schedules.
@@ -794,13 +1020,16 @@ function Settings() {
 
                         </div>
 
+
                         <button
                             className="delete-account-btn"
                             onClick={
                                 handleDeleteAccount
                             }
                         >
+
                             Delete Account
+
                         </button>
 
                     </section>
@@ -828,30 +1057,36 @@ function Settings() {
                     Dashboard
                 </a>
 
+
                 <a href="/children">
                     <span>♙</span>
                     Children
                 </a>
+
 
                 <a href="/schedule">
                     <span>▣</span>
                     Schedule
                 </a>
 
+
                 <a href="/reminders">
                     <span>♧</span>
                     Reminders
                 </a>
+
 
                 <a href="/reports">
                     <span>▥</span>
                     Reports
                 </a>
 
+
                 <a href="/profile">
                     <span>◉</span>
                     Profile
                 </a>
+
 
                 <a
                     href="/settings"
@@ -864,7 +1099,10 @@ function Settings() {
             </nav>
 
         </div>
+
     );
+
 }
+
 
 export default Settings;

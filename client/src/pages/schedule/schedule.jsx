@@ -631,15 +631,7 @@ function Schedule() {
                         ☰
                     </button>
 
-
                     <div className="schedule-top-space" />
-
-
-                    <button className="schedule-notification">
-                        ♧
-                        <span />
-                    </button>
-
 
                     <div className="schedule-user">
 

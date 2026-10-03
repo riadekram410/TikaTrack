@@ -495,10 +495,7 @@ function Children() {
 
           <div className="children-topbar-spacer"></div>
 
-          <button className="children-notification">
-            ♧
-            <span></span>
-          </button>
+          
 
           <div className="children-user">
 
@@ -510,10 +507,6 @@ function Children() {
               <strong>Guardian</strong>
               <small>Guardian</small>
             </div>
-
-            <span className="children-user-arrow">
-              ▼
-            </span>
 
           </div>
 
