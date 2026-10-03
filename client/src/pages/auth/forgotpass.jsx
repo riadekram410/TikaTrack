@@ -4,12 +4,52 @@ import "./forgotpass.css";
 
 function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Backend connect করার পরে এখানে API call হবে
-    setSubmitted(true);
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.error || "Unable to send reset link."
+        );
+        return;
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error(
+        "Forgot password error:",
+        error
+      );
+
+      setError(
+        "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -127,17 +167,37 @@ function ForgotPassword() {
                   id="email"
                   name="email"
                   placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
                   required
                 />
 
               </div>
 
 
+              {error && (
+                <p
+                  style={{
+                    color: "#d32f2f",
+                    fontSize: "14px",
+                    marginTop: "8px",
+                  }}
+                >
+                  {error}
+                </p>
+              )}
+
+
               <button
                 type="submit"
                 className="forgot-submit-button"
+                disabled={loading}
               >
-                Send Reset Link
+                {loading
+                  ? "Sending..."
+                  : "Send Reset Link"}
               </button>
 
             </form>

@@ -5,6 +5,8 @@ import Landing from "./pages/landing/landing";
 import Login from "./pages/auth/login";
 import Register from "./pages/auth/register";
 import ForgotPassword from "./pages/auth/forgotpass";
+import ResetPassword from "./pages/resetPassword/resetPassword";
+
 import Dashboard from "./pages/dashboard/dashboard";
 import Children from "./pages/children/children";
 import ChildDetails from "./pages/childDetails/childDetails";
@@ -23,6 +25,8 @@ function App() {
     <BrowserRouter>
       <Routes>
 
+        {/* ================= PUBLIC ================= */}
+
         <Route
           path="/"
           element={
@@ -31,6 +35,9 @@ function App() {
             </PublicRoute>
           }
         />
+
+
+        {/* ================= AUTH ================= */}
 
         <Route
           path="/login"
@@ -58,6 +65,15 @@ function App() {
             </GuestRoute>
           }
         />
+
+        {/* Reset password from Gmail link */}
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPassword />}
+        />
+
+
+        {/* ================= PROTECTED ================= */}
 
         <Route
           path="/dashboard"
