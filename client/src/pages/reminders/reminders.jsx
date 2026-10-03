@@ -1,10 +1,13 @@
-
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./reminders.css";
+import NotificationBell from "../../components/NotificationBell";
 
 const API = "http://localhost:5000/api";
 
 function Reminders() {
+  const navigate = useNavigate();
+  const [completingId, setCompletingId] = useState(null);
   const [filter, setFilter] = useState("All");
   const [children, setChildren] = useState([]);
   const [reminders, setReminders] = useState([]);
@@ -58,7 +61,17 @@ function Reminders() {
         setReminders(loadedSchedules);
 
         if (loadedChildren.length > 0) {
-          setSelectedChildId(loadedChildren[0]._id);
+          const linkedId = new URLSearchParams(
+            window.location.search
+          ).get("child");
+
+          const linked = loadedChildren.find(
+            (child) => String(child._id) === String(linkedId)
+          );
+
+          setSelectedChildId(
+            linked ? linked._id : loadedChildren[0]._id
+          );
         }
       } catch (err) {
         console.error("Error loading reminders:", err);
@@ -108,14 +121,31 @@ function Reminders() {
     return "Upcoming";
   };
 
-  const formattedReminders = childReminders.map((reminder) => ({
-    ...reminder,
-    displayStatus: getReminderStatus(reminder),
-    icon:
-      reminder.status === "Completed"
-        ? "✓"
-        : "💉",
-  }));
+  const statusRank = {
+    Overdue: 0,
+    "Due Soon": 1,
+    Upcoming: 2,
+    Completed: 3,
+  };
+
+  const formattedReminders = childReminders
+    .map((reminder) => ({
+      ...reminder,
+      displayStatus: getReminderStatus(reminder),
+      icon:
+        reminder.status === "Completed"
+          ? "✓"
+          : "💉",
+    }))
+    .sort((a, b) => {
+      const rank =
+        statusRank[a.displayStatus] -
+        statusRank[b.displayStatus];
+
+      if (rank !== 0) return rank;
+
+      return new Date(a.date) - new Date(b.date);
+    });
 
   const filteredReminders =
     filter === "All"
@@ -140,18 +170,67 @@ function Reminders() {
     (item) => item.displayStatus === "Overdue"
   ).length;
 
-  const upcomingReminders = formattedReminders
+  const urgentReminders = formattedReminders
     .filter(
       (item) =>
-        item.displayStatus === "Due Soon" ||
-        item.displayStatus === "Upcoming"
+        item.displayStatus === "Overdue" ||
+        item.displayStatus === "Due Soon"
     )
-    .sort(
-      (a, b) =>
-        new Date(a.date) - new Date(b.date)
-    );
+    .sort((a, b) => {
+      // Overdue first, then the nearest due date
+      const aOver = a.displayStatus === "Overdue" ? 0 : 1;
+      const bOver = b.displayStatus === "Overdue" ? 0 : 1;
 
-  const importantReminder = upcomingReminders[0];
+      if (aOver !== bOver) return aOver - bOver;
+
+      return new Date(a.date) - new Date(b.date);
+    });
+
+  const importantReminder = urgentReminders[0];
+
+  const goToSchedule = (childId) => {
+    navigate(`/schedule?child=${childId}`);
+  };
+
+  const handleMarkDone = async (reminder) => {
+    try {
+      setCompletingId(reminder._id);
+      setError("");
+
+      const response = await fetch(
+        `${API}/schedules/${reminder._id}/complete`,
+        {
+          method: "PUT",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to mark as completed"
+        );
+      }
+
+      setReminders((previous) =>
+        previous.map((item) =>
+          String(item._id) === String(reminder._id)
+            ? {
+                ...item,
+                status: "Completed",
+                completedAt: new Date().toISOString(),
+              }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error("Error completing reminder:", err);
+      setError(err.message || "Failed to mark as completed");
+    } finally {
+      setCompletingId(null);
+    }
+  };
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("en-GB", {
@@ -161,11 +240,21 @@ function Reminders() {
     });
   };
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const getDueLabel = (reminder) => {
+    if (reminder.status === "Completed") {
+      return reminder.completedAt
+        ? `Given ${formatDate(reminder.completedAt)}`
+        : "Given";
+    }
+
+    const days = getDaysRemaining(reminder.date);
+
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
+    if (days === -1) return "1 day overdue";
+    if (days < 0) return `${Math.abs(days)} days overdue`;
+
+    return `In ${days} days`;
   };
 
   const getDaysRemaining = (date) => {
@@ -265,6 +354,8 @@ function Reminders() {
 
           <div className="reminders-top-space"></div>
 
+          <NotificationBell className="reminders-notification" />
+
           <div className="reminders-user">
 
             <div className="reminders-user-avatar">
@@ -280,6 +371,8 @@ function Reminders() {
                 Guardian
               </small>
             </div>
+
+        
 
           </div>
 
@@ -308,10 +401,6 @@ function Reminders() {
 
             </div>
 
-            <button className="reminders-settings-btn">
-              ⚙ Reminder Settings
-            </button>
-
           </div>
 
 
@@ -330,6 +419,26 @@ function Reminders() {
             </div>
           )}
 
+
+          {children.length === 0 && !error && (
+            <div className="reminders-empty">
+              <span>👶</span>
+
+              <h3>No children registered yet</h3>
+
+              <p>
+                Add a child to start getting vaccination
+                reminders.
+              </p>
+
+              <button
+                className="important-action"
+                onClick={() => navigate("/children")}
+              >
+                Add Child
+              </button>
+            </div>
+          )}
 
           {/* CHILD SELECTOR */}
           {children.length > 0 && (
@@ -373,84 +482,51 @@ function Reminders() {
 
 
           {/* SUMMARY */}
+          {children.length > 0 && (
           <section className="reminders-summary">
 
             <div className="reminders-summary-card">
-
               <div className="reminders-summary-icon alert">
+                !
+              </div>
+              <div>
+                <strong>{overdue}</strong>
+                <span>Overdue</span>
+              </div>
+            </div>
+
+            <div className="reminders-summary-card">
+              <div className="reminders-summary-icon upcoming">
                 🔔
               </div>
-
               <div>
-                <strong>
-                  {dueSoon}
-                </strong>
-
-                <span>
-                  Due Soon
-                </span>
+                <strong>{dueSoon}</strong>
+                <span>Due Soon</span>
               </div>
-
             </div>
 
-
             <div className="reminders-summary-card">
-
-              <div className="reminders-summary-icon upcoming">
+              <div className="reminders-summary-icon blue">
                 ◷
               </div>
-
               <div>
-                <strong>
-                  {upcoming}
-                </strong>
-
-                <span>
-                  Upcoming
-                </span>
+                <strong>{upcoming}</strong>
+                <span>Upcoming</span>
               </div>
-
             </div>
 
-
             <div className="reminders-summary-card">
-
               <div className="reminders-summary-icon completed">
                 ✓
               </div>
-
               <div>
-                <strong>
-                  {completed}
-                </strong>
-
-                <span>
-                  Completed
-                </span>
+                <strong>{completed}</strong>
+                <span>Completed</span>
               </div>
-
-            </div>
-
-
-            <div className="reminders-summary-card">
-
-              <div className="reminders-summary-icon active-icon">
-                🔔
-              </div>
-
-              <div>
-                <strong>
-                  ON
-                </strong>
-
-                <span>
-                  Reminders Active
-                </span>
-              </div>
-
             </div>
 
           </section>
+          )}
 
 
           {/* IMPORTANT REMINDER */}
@@ -469,13 +545,18 @@ function Reminders() {
                 </span>
 
                 <h2>
-                  {importantReminder.name} vaccination is due soon
+                  {importantReminder.name} vaccination is{" "}
+                  {importantReminder.displayStatus === "Overdue"
+                    ? "overdue"
+                    : "due soon"}
                 </h2>
 
                 <p>
                   {selectedChild?.name}'s{" "}
                   {importantReminder.name} dose
-                  is scheduled for{" "}
+                  {importantReminder.displayStatus === "Overdue"
+                    ? " was scheduled for "
+                    : " is scheduled for "}
                   {formatDate(importantReminder.date)}.
                 </p>
 
@@ -508,7 +589,12 @@ function Reminders() {
 
               </div>
 
-              <button className="important-action">
+              <button
+                className="important-action"
+                onClick={() =>
+                  goToSchedule(selectedChild._id)
+                }
+              >
                 View Schedule
               </button>
 
@@ -518,6 +604,7 @@ function Reminders() {
 
 
           {/* REMINDER LIST */}
+          {children.length > 0 && (
           <section className="reminders-list-card">
 
             <div className="reminders-list-header">
@@ -534,9 +621,12 @@ function Reminders() {
 
               </div>
 
-              <button className="mark-all-btn">
-                ✓ Mark All Read
-              </button>
+              <span className="reminders-list-count">
+                {filteredReminders.length}{" "}
+                {filteredReminders.length === 1
+                  ? "reminder"
+                  : "reminders"}
+              </span>
 
             </div>
 
@@ -564,6 +654,15 @@ function Reminders() {
                   }
                 >
                   {item}
+                  {item !== "All" && (
+                    <em className="filter-count">
+                      {
+                        formattedReminders.filter(
+                          (r) => r.displayStatus === item
+                        ).length
+                      }
+                    </em>
+                  )}
                 </button>
 
               ))}
@@ -634,10 +733,7 @@ function Reminders() {
                           </span>
 
                           <span>
-                            ◷{" "}
-                            {formatTime(
-                              reminder.date
-                            )}
+                            ◷ {getDueLabel(reminder)}
                           </span>
 
                         </div>
@@ -657,11 +753,26 @@ function Reminders() {
                         ) : (
 
                           <>
-                            <button className="snooze-btn">
-                              Snooze
+                            <button
+                              className="snooze-btn"
+                              disabled={
+                                completingId === reminder._id
+                              }
+                              onClick={() =>
+                                handleMarkDone(reminder)
+                              }
+                            >
+                              {completingId === reminder._id
+                                ? "..."
+                                : "Mark Done"}
                             </button>
 
-                            <button className="view-btn">
+                            <button
+                              className="view-btn"
+                              onClick={() =>
+                                goToSchedule(selectedChild._id)
+                              }
+                            >
                               View
                             </button>
                           </>
@@ -700,49 +811,7 @@ function Reminders() {
             )}
 
           </section>
-
-
-          {/* REMINDER SETTINGS CARD */}
-          <section className="reminder-preferences">
-
-            <div className="preferences-icon">
-              ⚙
-            </div>
-
-            <div className="preferences-content">
-
-              <span>
-                REMINDER PREFERENCES
-              </span>
-
-              <h2>
-                Keep Your Reminders Active
-              </h2>
-
-              <p>
-                Receive notifications before your child's
-                vaccination is due.
-              </p>
-
-            </div>
-
-            <div className="preference-status">
-
-              <span>
-                REMINDERS
-              </span>
-
-              <strong>
-                ON
-              </strong>
-
-            </div>
-
-            <button className="preference-btn">
-              Manage
-            </button>
-
-          </section>
+          )}
 
         </div>
 
