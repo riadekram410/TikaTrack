@@ -9,6 +9,9 @@ import authRouter from "./routes/auth.js";
 import childRoutes from "./routes/children.js";
 import scheduleRoutes from "./routes/schedules.js";
 import carbonFootprint from "./middlewares/carbonFootprint.js";
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 
 const app = express();
