@@ -1649,3 +1649,231 @@
     width: 100%;
   }
 }
+
+
+/* =========================================
+   VACCINE TRACKING ADDITIONS
+========================================= */
+
+.children-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 760px) {
+  .children-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .children-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.children-summary-icon.red {
+  background: #fdeaea;
+  color: #c0392b;
+}
+
+.children-action-error {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fdeaea;
+  color: #b3261e;
+  font-size: 12px;
+}
+
+.child-stage-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #e8f6ed;
+  color: #16804d;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.child-menu-wrap {
+  position: relative;
+}
+
+.child-menu-dropdown {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 20;
+  min-width: 130px;
+  padding: 6px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.child-menu-dropdown button {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #b3261e;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.child-menu-dropdown button:hover {
+  background: #fdeaea;
+}
+
+.child-status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.child-status-chips .chip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.chip.completed { background: #e8f6ed; color: #16804d; }
+.chip.upcoming  { background: #fff2df; color: #b8741a; }
+.chip.overdue   { background: #fdeaea; color: #c0392b; }
+
+.next-vaccine-date span.status-overdue {
+  background: #fdeaea;
+  color: #c0392b;
+}
+
+.toggle-vaccines-button {
+  padding: 10px 14px;
+  border: 1px solid #cfe3d7;
+  border-radius: 10px;
+  background: #fff;
+  color: #167c4c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle-vaccines-button:hover {
+  background: #eaf7ef;
+}
+
+.vaccine-checklist {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed #dbe5df;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.vaccine-group {
+  margin-bottom: 14px;
+}
+
+.vaccine-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  color: #29372f;
+  font-size: 12px;
+}
+
+.vaccine-group-header span {
+  color: #9aa49e;
+  font-size: 10px;
+}
+
+.vaccine-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: #f7f9f8;
+  border-left: 3px solid #f0b35a;
+}
+
+.vaccine-row.completed { border-left-color: #16804d; }
+.vaccine-row.overdue   { border-left-color: #c0392b; background: #fff8f7; }
+
+.vaccine-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vaccine-row-info strong {
+  color: #29372f;
+  font-size: 12px;
+}
+
+.vaccine-row-info small,
+.vaccine-row-info span {
+  color: #8c9791;
+  font-size: 10px;
+}
+
+.vaccine-badge {
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vaccine-badge.completed { background: #e8f6ed; color: #16804d; }
+.vaccine-badge.upcoming  { background: #fff2df; color: #b8741a; }
+.vaccine-badge.overdue   { background: #fdeaea; color: #c0392b; }
+
+.vaccine-complete-button,
+.vaccine-undo-button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.vaccine-complete-button {
+  border: none;
+  background: #167c4c;
+  color: #fff;
+}
+
+.vaccine-complete-button:hover { background: #126a40; }
+
+.vaccine-undo-button {
+  border: 1px solid #d5dcd8;
+  background: #fff;
+  color: #6b7770;
+}
+
+.vaccine-complete-button:disabled,
+.vaccine-undo-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 500px) {
+  .vaccine-row {
+    flex-wrap: wrap;
+  }
+
+  .child-card-actions {
+    flex-wrap: wrap;
+  }
+}

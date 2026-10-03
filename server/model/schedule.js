@@ -26,9 +26,19 @@ const scheduleSchema = new Schema(
             trim: true,
         },
 
+        ageGroup: {
+            type: String,
+            trim: true,
+        },
+
         date: {
             type: Date,
             required: true,
+        },
+
+        completedAt: {
+            type: Date,
+            default: null,
         },
 
         status: {

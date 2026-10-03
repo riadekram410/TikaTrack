@@ -1,38 +1,7 @@
 import Schedule from "../model/schedule.js";
 import Child from "../model/child.js";
-import { generateVaccineSchedule } from "../utils/vaccineSchedule.js";
-
-
-// ======================================================
-// AUTOMATIC STATUS UPDATE
-// ======================================================
-
-const updateAutomaticStatuses = async (schedules) => {
-    const today = new Date();
-
-    for (const schedule of schedules) {
-
-        // যদি vaccine already completed হয়,
-        // তাহলে automatic status change হবে না
-        if (schedule.status === "Completed") {
-            continue;
-        }
-
-        const vaccineDate = new Date(
-            schedule.date
-        );
-
-        if (vaccineDate < today) {
-            schedule.status = "Overdue";
-        } else {
-            schedule.status = "Upcoming";
-        }
-
-        await schedule.save();
-    }
-
-    return schedules;
-};
+import { generateVaccineSchedule, computeStatus } from "../utils/vaccineSchedule.js";
+import { syncScheduleStatuses } from "../utils/vaccineSummary.js";
 
 
 // ======================================================
@@ -184,7 +153,7 @@ export const createSchedule = async (
         let vaccineStatus;
 
 
-        // যদি frontend থেকে Completed পাঠানো হয়
+        // যদি frontend থেকে Completed পাঠানো হয়
         // তাহলে Completed থাকবে
         if (status === "Completed") {
 
@@ -193,7 +162,7 @@ export const createSchedule = async (
 
         } else {
 
-            // অন্যথায় date অনুযায়ী
+            // অন্যথায় date অনুযায়ী
             // Upcoming / Overdue
             vaccineStatus =
                 vaccineDate < new Date()
@@ -274,7 +243,9 @@ export const getSchedules = async (
             );
 
 
-        let schedules =
+        await syncScheduleStatuses(childIds);
+
+        const schedules =
             await Schedule.find({
 
                 childId: {
@@ -289,14 +260,6 @@ export const getSchedules = async (
                 .sort({
                     date: 1,
                 });
-
-
-        // Automatically update
-        // Upcoming / Overdue
-        schedules =
-            await updateAutomaticStatuses(
-                schedules
-            );
 
 
         return res.status(200).json({
@@ -507,7 +470,7 @@ export const updateSchedule = async (
         }
 
 
-        // যদি explicitly status পাঠানো হয়
+        // যদি explicitly status পাঠানো হয়
         // সেটা use করবে
         if (status !== undefined) {
 
@@ -520,7 +483,7 @@ export const updateSchedule = async (
         ) {
 
             // Completed না হলে
-            // date অনুযায়ী status update
+            // date অনুযায়ী status update
             const vaccineDate =
                 new Date(
                     schedule.date
@@ -613,6 +576,9 @@ export const markScheduleCompleted =
             schedule.status =
                 "Completed";
 
+            schedule.completedAt =
+                new Date();
+
 
             await schedule.save();
 
@@ -638,6 +604,40 @@ export const markScheduleCompleted =
             });
         }
     };
+
+
+// ======================================================
+// UNDO COMPLETED (back to Upcoming / Overdue by date)
+// ======================================================
+
+export const undoScheduleCompleted = async (req, res) => {
+    try {
+        const children = await Child.find({ userId: req.user.id }).select("_id");
+
+        const schedule = await Schedule.findOne({
+            _id: req.params.id,
+            childId: { $in: children.map((c) => c._id) },
+        });
+
+        if (!schedule) {
+            return res.status(404).json({ error: "Schedule not found" });
+        }
+
+        schedule.status = computeStatus(schedule.date);
+        schedule.completedAt = null;
+
+        await schedule.save();
+
+        return res.status(200).json({
+            message: "Vaccination marked as not completed",
+            schedule,
+        });
+    } catch (err) {
+        console.log(`Error undoing completion: ${err}`);
+
+        return res.status(500).json({ error: "Server error" });
+    }
+};
 
 
 // ======================================================
