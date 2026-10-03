@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./schedule.css";
+import NotificationBell from "../../components/NotificationBell";
 
 const API = "http://localhost:5000/api";
 
@@ -230,17 +231,26 @@ function Schedule() {
             // if it still exists
             if (loadedChildren.length > 0) {
 
+                // Deep link: /schedule?child=<id>
+                const linkedChildId =
+                    new URLSearchParams(
+                        window.location.search
+                    ).get("child");
+
                 setSelectedChildId((currentId) => {
+
+                    const wanted =
+                        currentId || linkedChildId;
 
                     const exists =
                         loadedChildren.some(
                             (child) =>
                                 String(child._id) ===
-                                String(currentId)
+                                String(wanted)
                         );
 
                     if (exists) {
-                        return currentId;
+                        return wanted;
                     }
 
                     return loadedChildren[0]._id;
@@ -396,18 +406,38 @@ function Schedule() {
     // NEXT VACCINE
     // ==================================================
 
+    // Overdue vaccines come first,
+    // then the nearest upcoming one.
+
     const nextVaccine =
         [...childVaccines]
             .filter(
                 (vaccine) =>
-                    vaccine.status ===
-                    "Upcoming"
+                    vaccine.status !==
+                    "Completed"
             )
-            .sort(
-                (a, b) =>
+            .sort((a, b) => {
+
+                const aOver =
+                    a.status === "Overdue"
+                        ? 0
+                        : 1;
+
+                const bOver =
+                    b.status === "Overdue"
+                        ? 0
+                        : 1;
+
+                if (aOver !== bOver) {
+                    return aOver - bOver;
+                }
+
+                return (
                     new Date(a.date) -
                     new Date(b.date)
-            )[0];
+                );
+
+            })[0];
 
 
     // ==================================================
@@ -635,10 +665,7 @@ function Schedule() {
                     <div className="schedule-top-space" />
 
 
-                    <button className="schedule-notification">
-                        ♧
-                        <span />
-                    </button>
+                    <NotificationBell className="schedule-notification" />
 
 
                     <div className="schedule-user">
@@ -1014,14 +1041,18 @@ function Schedule() {
                                     <div className="schedule-next-info">
 
                                         <span>
-                                            NEXT
-                                            VACCINATION
+                                            {nextVaccine?.status ===
+                                            "Overdue"
+                                                ? "OVERDUE VACCINATION"
+                                                : "NEXT VACCINATION"}
                                         </span>
 
 
                                         <h2>
                                             {nextVaccine?.name ||
-                                                "No upcoming vaccine"}
+                                                (total > 0
+                                                    ? "All vaccines completed 🎉"
+                                                    : "No upcoming vaccine")}
                                         </h2>
 
 
@@ -1063,14 +1094,13 @@ function Schedule() {
                                             <button
                                                 className="schedule-reminder"
                                                 type="button"
-                                                onClick={() =>
-                                                    alert(
-                                                        "Reminder feature will be connected soon."
-                                                    )
-                                                }
+                                                onClick={() => {
+                                                    window.location.href =
+                                                        `/reminders?child=${selectedChildId}`;
+                                                }}
                                             >
-                                                🔔 Set
-                                                Reminder
+                                                🔔 View
+                                                Reminders
                                             </button>
 
                                         </>
