@@ -3,7 +3,6 @@ import Child from "../model/child.js";
 import { generateVaccineSchedule, computeStatus } from "../utils/vaccineSchedule.js";
 import { syncScheduleStatuses } from "../utils/vaccineSummary.js";
 
-
 // ======================================================
 // GENERATE SCHEDULES FOR EXISTING CHILDREN
 // ======================================================
