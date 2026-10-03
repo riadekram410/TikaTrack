@@ -1,526 +1,870 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import "./settings.css";
 
+
 function Settings() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [vaccinationReminders, setVaccinationReminders] = useState(true);
-  const [overdueAlerts, setOverdueAlerts] = useState(true);
+    // ================= SETTINGS STATE =================
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/logout",
-        {
-          method: "POST",
-          credentials: "include",
+    const [emailNotifications, setEmailNotifications] =
+        useState(true);
+
+    const [vaccinationReminders, setVaccinationReminders] =
+        useState(true);
+
+    const [overdueAlerts, setOverdueAlerts] =
+        useState(true);
+
+    const [reminderDays, setReminderDays] =
+        useState(3);
+
+    // ================= UI STATE =================
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [saving, setSaving] =
+        useState(false);
+
+    const [message, setMessage] =
+        useState("");
+
+    const [error, setError] =
+        useState("");
+
+
+    // =====================================================
+    // LOAD SETTINGS
+    // =====================================================
+
+    const loadSettings = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const response = await fetch(
+                "http://localhost:5000/api/users/settings",
+                {
+                    method: "GET",
+                    credentials: "include",
+                    cache: "no-store",
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to load settings"
+                );
+            }
+
+            setVaccinationReminders(
+                data.settings.vaccinationReminders
+            );
+
+            setEmailNotifications(
+                data.settings.emailNotifications
+            );
+
+            setOverdueAlerts(
+                data.settings.overdueAlerts
+            );
+
+            setReminderDays(
+                data.settings.reminderDays
+            );
+
+        } catch (err) {
+            console.error(
+                "Settings loading error:",
+                err
+            );
+
+            setError(
+                "Failed to load settings."
+            );
+        } finally {
+            setLoading(false);
         }
-      );
+    };
 
-      const data = await response.json();
 
-      if (!response.ok) {
-        console.error("Logout failed:", data.error);
-        return;
-      }
+    // =====================================================
+    // LOAD SETTINGS ON PAGE OPEN
+    // =====================================================
 
-      console.log(data.message);
+    useEffect(() => {
+        loadSettings();
+    }, []);
 
-     navigate("/login", { replace: true });
-    } catch (err) {
-      console.error("Logout error:", err);
+
+    // =====================================================
+    // SAVE SETTINGS
+    // =====================================================
+
+    const saveSettings = async (
+        newVaccinationReminders =
+            vaccinationReminders,
+
+        newEmailNotifications =
+            emailNotifications,
+
+        newOverdueAlerts =
+            overdueAlerts,
+
+        newReminderDays =
+            reminderDays
+    ) => {
+        try {
+            setSaving(true);
+            setMessage("");
+            setError("");
+
+            const response = await fetch(
+                "http://localhost:5000/api/users/settings",
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    credentials: "include",
+
+                    body: JSON.stringify({
+                        vaccinationReminders:
+                            newVaccinationReminders,
+
+                        emailNotifications:
+                            newEmailNotifications,
+
+                        overdueAlerts:
+                            newOverdueAlerts,
+
+                        reminderDays:
+                            Number(newReminderDays),
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to save settings"
+                );
+            }
+
+            setMessage(
+                "Settings saved successfully."
+            );
+
+        } catch (err) {
+            console.error(
+                "Settings saving error:",
+                err
+            );
+
+            setError(
+                "Failed to save settings."
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+
+    // =====================================================
+    // TOGGLE VACCINATION REMINDERS
+    // =====================================================
+
+    const handleVaccinationReminderToggle =
+        () => {
+            const newValue =
+                !vaccinationReminders;
+
+            setVaccinationReminders(
+                newValue
+            );
+
+            saveSettings(
+                newValue,
+                emailNotifications,
+                overdueAlerts,
+                reminderDays
+            );
+        };
+
+
+    // =====================================================
+    // TOGGLE EMAIL NOTIFICATIONS
+    // =====================================================
+
+    const handleEmailNotificationToggle =
+        () => {
+            const newValue =
+                !emailNotifications;
+
+            setEmailNotifications(
+                newValue
+            );
+
+            saveSettings(
+                vaccinationReminders,
+                newValue,
+                overdueAlerts,
+                reminderDays
+            );
+        };
+
+
+    // =====================================================
+    // TOGGLE OVERDUE ALERTS
+    // =====================================================
+
+    const handleOverdueAlertToggle =
+        () => {
+            const newValue =
+                !overdueAlerts;
+
+            setOverdueAlerts(
+                newValue
+            );
+
+            saveSettings(
+                vaccinationReminders,
+                emailNotifications,
+                newValue,
+                reminderDays
+            );
+        };
+
+
+    // =====================================================
+    // REMINDER DAYS
+    // =====================================================
+
+    const handleReminderDaysChange =
+        (event) => {
+            const newValue =
+                Number(event.target.value);
+
+            setReminderDays(newValue);
+
+            saveSettings(
+                vaccinationReminders,
+                emailNotifications,
+                overdueAlerts,
+                newValue
+            );
+        };
+
+
+    // =====================================================
+    // LOGOUT
+    // =====================================================
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/auth/logout",
+                {
+                    method: "POST",
+                    credentials: "include",
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error(
+                    "Logout failed:",
+                    data.error
+                );
+
+                return;
+            }
+
+            navigate("/login", {
+                replace: true,
+            });
+
+        } catch (err) {
+            console.error(
+                "Logout error:",
+                err
+            );
+        }
+    };
+
+
+    // =====================================================
+    // DELETE ACCOUNT
+    // =====================================================
+
+    const handleDeleteAccount = async () => {
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to delete your account? This will permanently delete your account, children and vaccination schedules."
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const secondConfirmation =
+            window.confirm(
+                "This action cannot be undone. Continue?"
+            );
+
+        if (!secondConfirmation) {
+            return;
+        }
+
+        try {
+            setError("");
+            setMessage("");
+
+            const response = await fetch(
+                "http://localhost:5000/api/users/account",
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to delete account"
+                );
+            }
+
+            alert(
+                "Your account has been deleted successfully."
+            );
+
+            navigate("/login", {
+                replace: true,
+            });
+
+        } catch (err) {
+            console.error(
+                "Delete account error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                "Failed to delete account."
+            );
+        }
+    };
+
+
+    // =====================================================
+    // LOADING
+    // =====================================================
+
+    if (loading) {
+        return (
+            <div className="settings-page">
+                <div
+                    style={{
+                        width: "100%",
+                        minHeight: "100vh",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        color: "#167c4c",
+                    }}
+                >
+                    Loading settings...
+                </div>
+            </div>
+        );
     }
-  };
 
-  return (
-    <div className="settings-page">
 
-      {/* ================= SIDEBAR ================= */}
-      <aside className="settings-sidebar">
+    // =====================================================
+    // UI
+    // =====================================================
 
-        <div className="settings-logo">
-          Tika<span>Track</span>
+    return (
+        <div className="settings-page">
+
+            {/* ================= SIDEBAR ================= */}
+
+            <aside className="settings-sidebar">
+
+                <div className="settings-logo">
+                    Tika<span>Track</span>
+                </div>
+
+                <nav className="settings-nav">
+
+                    <a href="/dashboard">
+                        <span>⌂</span>
+                        Dashboard
+                    </a>
+
+                    <a href="/children">
+                        <span>♙</span>
+                        Children
+                    </a>
+
+                    <a href="/schedule">
+                        <span>▣</span>
+                        Schedule
+                    </a>
+
+                    <a href="/reminders">
+                        <span>♧</span>
+                        Reminders
+                    </a>
+
+                    <a href="/reports">
+                        <span>▥</span>
+                        Reports
+                    </a>
+
+                    <a href="/profile">
+                        <span>◉</span>
+                        Profile
+                    </a>
+
+                    <a
+                        href="/settings"
+                        className="active"
+                    >
+                        <span>⚙</span>
+                        Settings
+                    </a>
+
+                </nav>
+
+                <button
+                    className="settings-logout"
+                    onClick={handleLogout}
+                >
+                    <span>↪</span>
+                    Logout
+                </button>
+
+            </aside>
+
+
+            {/* ================= MAIN ================= */}
+
+            <main className="settings-main">
+
+                {/* TOPBAR */}
+
+                <header className="settings-topbar">
+
+                    <div className="settings-top-space"></div>
+
+                    <button className="settings-notification">
+                        ♧
+                        <span></span>
+                    </button>
+
+                    <div className="settings-user">
+
+                        <div className="settings-user-avatar">
+                            F
+                        </div>
+
+                        <div className="settings-user-info">
+                            <strong>Guardian</strong>
+                            <small>TikaTrack User</small>
+                        </div>
+
+                        <span className="settings-user-arrow">
+                            ▼
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                {/* ================= CONTENT ================= */}
+
+                <div className="settings-content">
+
+                    {/* HEADER */}
+
+                    <div className="settings-page-header">
+
+                        <div>
+
+                            <span className="settings-label">
+                                PREFERENCES
+                            </span>
+
+                            <h1>
+                                Settings
+                            </h1>
+
+                            <p>
+                                Manage your notification and vaccination reminder preferences.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* SUCCESS MESSAGE */}
+
+                    {message && (
+                        <div
+                            style={{
+                                marginBottom: "15px",
+                                padding: "10px 14px",
+                                borderRadius: "8px",
+                                background: "#e5f3e9",
+                                color: "#167c4c",
+                                fontSize: "11px",
+                            }}
+                        >
+                            {message}
+                        </div>
+                    )}
+
+
+                    {/* ERROR MESSAGE */}
+
+                    {error && (
+                        <div
+                            style={{
+                                marginBottom: "15px",
+                                padding: "10px 14px",
+                                borderRadius: "8px",
+                                background: "#fde9e7",
+                                color: "#c05249",
+                                fontSize: "11px",
+                            }}
+                        >
+                            {error}
+                        </div>
+                    )}
+
+
+                    {/* ================= NOTIFICATIONS ================= */}
+
+                    <section className="settings-card">
+
+                        <div className="settings-section-heading">
+
+                            <div className="settings-section-icon">
+                                🔔
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    NOTIFICATIONS
+                                </span>
+
+                                <h2>
+                                    Notification Preferences
+                                </h2>
+
+                                <p>
+                                    Choose which vaccination notifications you want to receive.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div className="settings-options">
+
+                            {/* Vaccination Reminders */}
+
+                            <div className="settings-toggle-row">
+
+                                <div className="option-icon">
+                                    🔔
+                                </div>
+
+                                <div className="option-content">
+
+                                    <strong>
+                                        Vaccination Reminders
+                                    </strong>
+
+                                    <span>
+                                        Get notified when a vaccination is coming up.
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    className={`toggle ${
+                                        vaccinationReminders
+                                            ? "on"
+                                            : ""
+                                    }`}
+                                    onClick={
+                                        handleVaccinationReminderToggle
+                                    }
+                                    disabled={saving}
+                                >
+                                    <div></div>
+                                </button>
+
+                            </div>
+
+
+                            {/* Email Notifications */}
+
+                            <div className="settings-toggle-row">
+
+                                <div className="option-icon">
+                                    ✉
+                                </div>
+
+                                <div className="option-content">
+
+                                    <strong>
+                                        Email Notifications
+                                    </strong>
+
+                                    <span>
+                                        Receive important updates through email.
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    className={`toggle ${
+                                        emailNotifications
+                                            ? "on"
+                                            : ""
+                                    }`}
+                                    onClick={
+                                        handleEmailNotificationToggle
+                                    }
+                                    disabled={saving}
+                                >
+                                    <div></div>
+                                </button>
+
+                            </div>
+
+
+                            {/* Overdue Alerts */}
+
+                            <div className="settings-toggle-row">
+
+                                <div className="option-icon">
+                                    !
+                                </div>
+
+                                <div className="option-content">
+
+                                    <strong>
+                                        Overdue Alerts
+                                    </strong>
+
+                                    <span>
+                                        Get notified if a vaccination becomes overdue.
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    className={`toggle ${
+                                        overdueAlerts
+                                            ? "on"
+                                            : ""
+                                    }`}
+                                    onClick={
+                                        handleOverdueAlertToggle
+                                    }
+                                    disabled={saving}
+                                >
+                                    <div></div>
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    {/* ================= REMINDER ================= */}
+
+                    <section className="settings-card">
+
+                        <div className="settings-section-heading">
+
+                            <div className="settings-section-icon">
+                                ◷
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    REMINDERS
+                                </span>
+
+                                <h2>
+                                    Reminder Preferences
+                                </h2>
+
+                                <p>
+                                    Set how early you want to be reminded about vaccinations.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div className="reminder-preference">
+
+                            <label>
+                                Remind me before vaccination
+                            </label>
+
+                            <select
+                                value={reminderDays}
+                                onChange={
+                                    handleReminderDaysChange
+                                }
+                                disabled={saving}
+                            >
+
+                                <option value="1">
+                                    1 day before
+                                </option>
+
+                                <option value="2">
+                                    2 days before
+                                </option>
+
+                                <option value="3">
+                                    3 days before
+                                </option>
+
+                                <option value="7">
+                                    1 week before
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </section>
+
+
+                    {/* ================= DANGER ZONE ================= */}
+
+                    <section className="settings-card danger-card">
+
+                        <div className="danger-content">
+
+                            <span>
+                                DANGER ZONE
+                            </span>
+
+                            <h2>
+                                Delete Account
+                            </h2>
+
+                            <p>
+                                Permanently delete your account, children and all vaccination schedules.
+                            </p>
+
+                        </div>
+
+                        <button
+                            className="delete-account-btn"
+                            onClick={
+                                handleDeleteAccount
+                            }
+                        >
+                            Delete Account
+                        </button>
+
+                    </section>
+
+
+                    <div className="settings-last-updated">
+
+                        {saving
+                            ? "Saving settings..."
+                            : "Settings are saved automatically"}
+
+                    </div>
+
+                </div>
+
+            </main>
+
+
+            {/* ================= MOBILE NAV ================= */}
+
+            <nav className="settings-mobile-nav">
+
+                <a href="/dashboard">
+                    <span>⌂</span>
+                    Dashboard
+                </a>
+
+                <a href="/children">
+                    <span>♙</span>
+                    Children
+                </a>
+
+                <a href="/schedule">
+                    <span>▣</span>
+                    Schedule
+                </a>
+
+                <a href="/reminders">
+                    <span>♧</span>
+                    Reminders
+                </a>
+
+                <a href="/reports">
+                    <span>▥</span>
+                    Reports
+                </a>
+
+                <a href="/profile">
+                    <span>◉</span>
+                    Profile
+                </a>
+
+                <a
+                    href="/settings"
+                    className="active"
+                >
+                    <span>⚙</span>
+                    Settings
+                </a>
+
+            </nav>
+
         </div>
-
-        <nav className="settings-nav">
-
-          <a href="/dashboard">
-            <span>⌂</span>
-            Dashboard
-          </a>
-
-          <a href="/children">
-            <span>♙</span>
-            Children
-          </a>
-
-          <a href="/schedule">
-            <span>▣</span>
-            Schedule
-          </a>
-
-          <a href="/reminders">
-            <span>♧</span>
-            Reminders
-          </a>
-
-          <a href="/reports">
-            <span>▥</span>
-            Reports
-          </a>
-
-          <a href="/profile">
-            <span>◉</span>
-            Profile
-          </a>
-
-          <a href="/settings" className="active">
-            <span>⚙</span>
-            Settings
-          </a>
-
-        </nav>
-
-        <button
-          className="settings-logout"
-          onClick={handleLogout}
-        >
-          <span>↪</span>
-          Logout
-        </button>
-
-      </aside>
-
-
-      {/* ================= MAIN ================= */}
-      <main className="settings-main">
-
-        {/* TOPBAR */}
-        <header className="settings-topbar">
-
-          <div className="settings-top-space"></div>
-
-          <button className="settings-notification">
-            ♧
-            <span></span>
-          </button>
-
-          <div className="settings-user">
-
-            <div className="settings-user-avatar">
-              F
-            </div>
-
-            <div className="settings-user-info">
-              <strong>Farzana Akter</strong>
-              <small>Guardian</small>
-            </div>
-
-            <span className="settings-user-arrow">
-              ▼
-            </span>
-
-          </div>
-
-        </header>
-
-
-        {/* ================= CONTENT ================= */}
-        <div className="settings-content">
-
-          {/* HEADER */}
-          <div className="settings-page-header">
-
-            <div>
-              <span className="settings-label">
-                ACCOUNT SETTINGS
-              </span>
-
-              <h1>
-                Settings
-              </h1>
-
-              <p>
-                Manage your account preferences and notification settings.
-              </p>
-            </div>
-
-          </div>
-
-
-          {/* ACCOUNT SETTINGS */}
-          <section className="settings-card">
-
-            <div className="settings-section-heading">
-
-              <div className="settings-section-icon">
-                ◉
-              </div>
-
-              <div>
-                <span>ACCOUNT</span>
-
-                <h2>
-                  Account Settings
-                </h2>
-
-                <p>
-                  Manage your basic account information.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div className="settings-options">
-
-              <div className="settings-option">
-
-                <div className="option-icon">
-                  ✉
-                </div>
-
-                <div className="option-content">
-                  <strong>Email Address</strong>
-                  <span>
-                    farzana@example.com
-                  </span>
-                </div>
-
-                <button className="settings-action">
-                  Change
-                </button>
-
-              </div>
-
-
-              <div className="settings-option">
-
-                <div className="option-icon">
-                  🔒
-                </div>
-
-                <div className="option-content">
-                  <strong>Password</strong>
-                  <span>
-                    Last changed recently
-                  </span>
-                </div>
-
-                <button className="settings-action">
-                  Change
-                </button>
-
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* NOTIFICATION SETTINGS */}
-          <section className="settings-card">
-
-            <div className="settings-section-heading">
-
-              <div className="settings-section-icon">
-                🔔
-              </div>
-
-              <div>
-                <span>NOTIFICATIONS</span>
-
-                <h2>
-                  Notification Preferences
-                </h2>
-
-                <p>
-                  Choose how you want to receive vaccination reminders.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div className="settings-options">
-
-              {/* OPTION 1 */}
-              <div className="settings-toggle-row">
-
-                <div className="option-icon">
-                  🔔
-                </div>
-
-                <div className="option-content">
-                  <strong>
-                    Vaccination Reminders
-                  </strong>
-
-                  <span>
-                    Get notified when a vaccination is coming up.
-                  </span>
-                </div>
-
-                <button
-                  className={`toggle ${
-                    vaccinationReminders ? "on" : ""
-                  }`}
-                  onClick={() =>
-                    setVaccinationReminders(
-                      !vaccinationReminders
-                    )
-                  }
-                >
-                  <div></div>
-                </button>
-
-              </div>
-
-
-              {/* OPTION 2 */}
-              <div className="settings-toggle-row">
-
-                <div className="option-icon">
-                  ✉
-                </div>
-
-                <div className="option-content">
-                  <strong>
-                    Email Notifications
-                  </strong>
-
-                  <span>
-                    Receive important updates through email.
-                  </span>
-                </div>
-
-                <button
-                  className={`toggle ${
-                    emailNotifications ? "on" : ""
-                  }`}
-                  onClick={() =>
-                    setEmailNotifications(
-                      !emailNotifications
-                    )
-                  }
-                >
-                  <div></div>
-                </button>
-
-              </div>
-
-
-              {/* OPTION 3 */}
-              <div className="settings-toggle-row">
-
-                <div className="option-icon">
-                  !
-                </div>
-
-                <div className="option-content">
-                  <strong>
-                    Overdue Alerts
-                  </strong>
-
-                  <span>
-                    Get notified if a vaccination becomes overdue.
-                  </span>
-                </div>
-
-                <button
-                  className={`toggle ${
-                    overdueAlerts ? "on" : ""
-                  }`}
-                  onClick={() =>
-                    setOverdueAlerts(
-                      !overdueAlerts
-                    )
-                  }
-                >
-                  <div></div>
-                </button>
-
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* REMINDER SETTINGS */}
-          <section className="settings-card">
-
-            <div className="settings-section-heading">
-
-              <div className="settings-section-icon">
-                ◷
-              </div>
-
-              <div>
-                <span>REMINDERS</span>
-
-                <h2>
-                  Reminder Preferences
-                </h2>
-
-                <p>
-                  Set how early you want to be reminded.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div className="reminder-preference">
-
-              <label>
-                Remind me before vaccination
-              </label>
-
-              <select defaultValue="3">
-                <option value="1">
-                  1 day before
-                </option>
-
-                <option value="2">
-                  2 days before
-                </option>
-
-                <option value="3">
-                  3 days before
-                </option>
-
-                <option value="7">
-                  1 week before
-                </option>
-              </select>
-
-            </div>
-
-          </section>
-
-
-          {/* PRIVACY */}
-          <section className="settings-card">
-
-            <div className="settings-section-heading">
-
-              <div className="settings-section-icon">
-                🔒
-              </div>
-
-              <div>
-                <span>PRIVACY</span>
-
-                <h2>
-                  Privacy & Security
-                </h2>
-
-                <p>
-                  Manage your account security and privacy preferences.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div className="privacy-options">
-
-              <button className="privacy-btn">
-                Change Password
-                <span>→</span>
-              </button>
-
-              <button className="privacy-btn">
-                Privacy Policy
-                <span>→</span>
-              </button>
-
-            </div>
-
-          </section>
-
-
-          {/* DANGER ZONE */}
-          <section className="settings-card danger-card">
-
-            <div className="danger-content">
-
-              <span>DANGER ZONE</span>
-
-              <h2>
-                Delete Account
-              </h2>
-
-              <p>
-                Permanently delete your account and all associated data.
-              </p>
-
-            </div>
-
-            <button className="delete-account-btn">
-              Delete Account
-            </button>
-
-          </section>
-
-
-          <div className="settings-last-updated">
-            Settings are saved automatically
-          </div>
-
-        </div>
-
-      </main>
-
-
-      {/* ================= MOBILE NAV ================= */}
-      <nav className="settings-mobile-nav">
-
-        <a href="/dashboard">
-          <span>⌂</span>
-          Dashboard
-        </a>
-
-        <a href="/children">
-          <span>♙</span>
-          Children
-        </a>
-
-        <a href="/schedule">
-          <span>▣</span>
-          Schedule
-        </a>
-
-        <a href="/reminders">
-          <span>♧</span>
-          Reminders
-        </a>
-
-        <a href="/reports">
-          <span>▥</span>
-          Reports
-        </a>
-
-        <a href="/profile">
-          <span>◉</span>
-          Profile
-        </a>
-
-        <a
-          href="/settings"
-          className="active"
-        >
-          <span>⚙</span>
-          Settings
-        </a>
-
-      </nav>
-
-    </div>
-  );
+    );
 }
 
 export default Settings;
