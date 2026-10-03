@@ -1,17 +1,26 @@
 import express from "express";
+
 import {
-    createUser,
-    getProfile,
+  createUser,
+  getProfile,
+  updateProfile,
+  changePassword,
 } from "../controller/userController.js";
+
 import checkToken from "../middlewares/checkToken.js";
 
 const router = express.Router();
 
 // Register
-//OST http://localhost:5000/api/users
 router.post("/", createUser);
 
-// Protected profile
+// Load profile
 router.get("/profile", checkToken, getProfile);
+
+// Save personal details
+router.put("/profile", checkToken, updateProfile);
+
+// Change password
+router.put("/change-password", checkToken, changePassword);
 
 export default router;
