@@ -3,15 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./children.css";
-import NotificationBell from "../../components/NotificationBell";
 
 function Children() {
   const navigate = useNavigate();
 
   const [children, setChildren] = useState([]);
-
-  // Logged-in guardian (name comes from the backend)
-  const [user, setUser] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -76,28 +72,6 @@ function Children() {
 
   useEffect(() => {
     fetchChildren();
-
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/users/profile",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-
-          setUser(data.user);
-        }
-      } catch (err) {
-        console.error("Error fetching user:", err);
-      }
-    };
-
-    fetchUser();
   }, []);
 
   // ================= FORM HANDLERS =================
@@ -521,26 +495,18 @@ function Children() {
 
           <div className="children-topbar-spacer"></div>
 
-          <NotificationBell className="children-notification" />
+          
 
           <div className="children-user">
 
             <div className="children-user-avatar">
-              {user?.name
-                ? user.name.charAt(0).toUpperCase()
-                : "G"}
+              G
             </div>
 
             <div className="children-user-info">
-              <strong>
-                {user?.name || "Guardian"}
-              </strong>
+              <strong>Guardian</strong>
               <small>Guardian</small>
             </div>
-
-            <span className="children-user-arrow">
-              ▼
-            </span>
 
           </div>
 

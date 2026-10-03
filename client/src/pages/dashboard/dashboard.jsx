@@ -511,19 +511,7 @@ function Dashboard() {
           <div className="topbar-spacer"></div>
 
           {/* NOTIFICATION */}
-          <button
-            className="notification-button"
-            onClick={() =>
-              navigate("/reminders")
-            }
-            title="View reminders"
-          >
-            ♧
-
-            {upcomingCount > 0 && (
-              <span className="notification-dot"></span>
-            )}
-          </button>
+         
 
           {/* SIMPLE USER INFO */}
           <div className="user-profile">
