@@ -1,0 +1,205 @@
+.carbon-footprint-popup {
+    position: fixed;
+
+    right: 20px;
+    bottom: 20px;
+
+    width: 270px;
+
+    padding: 18px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.96
+    );
+
+    border: 1px solid
+        rgba(25, 135, 84, 0.15);
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 12px 35px
+        rgba(0, 0, 0, 0.15);
+
+    backdrop-filter: blur(10px);
+
+    z-index: 9999;
+
+    font-family:
+        Inter,
+        system-ui,
+        sans-serif;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.carbon-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 16px;
+}
+
+
+.carbon-icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #e8f7ef;
+
+    font-size: 20px;
+}
+
+
+.carbon-header strong {
+    display: block;
+
+    font-size: 14px;
+
+    color: #173b2a;
+}
+
+
+.carbon-header span {
+    display: block;
+
+    margin-top: 2px;
+
+    font-size: 11px;
+
+    color: #718078;
+}
+
+
+/* ==========================================
+   STAT
+========================================== */
+
+.carbon-stat {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 10px 0;
+
+    border-top: 1px solid
+        #edf1ee;
+}
+
+
+.carbon-stat span {
+    font-size: 11px;
+
+    color: #718078;
+}
+
+
+.carbon-stat strong {
+    font-size: 14px;
+
+    color: #173b2a;
+}
+
+
+.carbon-value {
+    color: #198754 !important;
+}
+
+
+.carbon-value small {
+    font-size: 9px;
+
+    font-weight: 500;
+
+    color: #718078;
+}
+
+
+/* ==========================================
+   LIVE
+========================================== */
+
+.carbon-live {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 12px;
+
+    font-size: 10px;
+
+    color: #198754;
+
+    font-weight: 600;
+}
+
+
+.carbon-live-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #198754;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(25, 135, 84, 0.1);
+}
+
+
+/* ==========================================
+   NOTE
+========================================== */
+
+.carbon-note {
+    margin-top: 8px;
+
+    font-size: 9px;
+
+    line-height: 1.4;
+
+    color: #929b96;
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+
+    .carbon-footprint-popup {
+
+        right: 12px;
+        bottom: 75px;
+
+        width: 235px;
+
+        padding: 14px;
+
+        border-radius: 13px;
+
+    }
+
+}
