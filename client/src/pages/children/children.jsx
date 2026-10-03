@@ -22,6 +22,15 @@ function Children() {
 
   const [editingChild, setEditingChild] = useState(null);
 
+  // Vaccine checklist / actions
+  const [expandedId, setExpandedId] = useState(null);
+
+  const [completingId, setCompletingId] = useState(null);
+
+  const [menuId, setMenuId] = useState(null);
+
+  const [actionError, setActionError] = useState("");
+
   const [formData, setFormData] = useState({
     name: "",
     dateOfBirth: "",
@@ -32,9 +41,9 @@ function Children() {
 
   // ================= FETCH CHILDREN =================
 
-  const fetchChildren = async () => {
+  const fetchChildren = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError("");
 
       const response = await fetch(
@@ -219,7 +228,122 @@ function Children() {
     setShowAddForm(true);
   };
 
+  // ================= MARK VACCINE COMPLETED / UNDO =================
+
+  const handleToggleVaccine = async (vaccine) => {
+    try {
+      setActionError("");
+      setCompletingId(vaccine._id);
+
+      const endpoint =
+        vaccine.status === "Completed" ? "undo" : "complete";
+
+      const response = await fetch(
+        `http://localhost:5000/api/schedules/${vaccine._id}/${endpoint}`,
+        {
+          method: "PUT",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setActionError(
+          data.error || "Failed to update vaccination"
+        );
+        return;
+      }
+
+      // Reload so progress, counts and next vaccine stay accurate
+      await fetchChildren(true);
+    } catch (err) {
+      console.error("Error updating vaccination:", err);
+      setActionError("Unable to connect to server");
+    } finally {
+      setCompletingId(null);
+    }
+  };
+
+  // ================= DELETE CHILD =================
+
+  const handleDeleteChild = async (child) => {
+    setMenuId(null);
+
+    const confirmed = window.confirm(
+      `Delete ${child.name}? All of their vaccination records will be removed too.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setActionError("");
+
+      const response = await fetch(
+        `http://localhost:5000/api/children/${child._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setActionError(data.error || "Failed to delete child");
+        return;
+      }
+
+      await fetchChildren(true);
+    } catch (err) {
+      console.error("Error deleting child:", err);
+      setActionError("Unable to connect to server");
+    }
+  };
+
   // ================= HELPERS =================
+
+  const getAgeStage = (dateOfBirth) => {
+    if (!dateOfBirth) return "";
+
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+
+    const months =
+      (today.getFullYear() - dob.getFullYear()) * 12 +
+      (today.getMonth() - dob.getMonth()) -
+      (today.getDate() < dob.getDate() ? 1 : 0);
+
+    if (months < 1) return "Newborn";
+    if (months < 12) return "Infant";
+    if (months < 36) return "Toddler";
+    return "Child";
+  };
+
+  const formatShortDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "—";
+
+  // Totals across all children
+  const totals = children.reduce(
+    (sum, child) => {
+      const v = child.vaccineSummary;
+
+      if (!v) return sum;
+
+      sum.completed += v.completed;
+      sum.upcoming += v.upcoming;
+      sum.overdue += v.overdue;
+
+      return sum;
+    },
+    { completed: 0, upcoming: 0, overdue: 0 }
+  );
 
   const getInitials = (name) => {
     if (!name) return "CH";
@@ -459,7 +583,7 @@ function Children() {
               </div>
 
               <div>
-                <strong>0</strong>
+                <strong>{totals.completed}</strong>
 
                 <span>
                   Completed Vaccinations
@@ -475,10 +599,26 @@ function Children() {
               </div>
 
               <div>
-                <strong>0</strong>
+                <strong>{totals.upcoming}</strong>
 
                 <span>
                   Upcoming Vaccinations
+                </span>
+              </div>
+
+            </div>
+
+            <div className="children-summary-card">
+
+              <div className="children-summary-icon red">
+                !
+              </div>
+
+              <div>
+                <strong>{totals.overdue}</strong>
+
+                <span>
+                  Overdue Vaccinations
                 </span>
               </div>
 
@@ -536,6 +676,12 @@ function Children() {
                 </p>
               )}
 
+            {actionError && (
+              <p className="children-action-error">
+                {actionError}
+              </p>
+            )}
+
             {/* CHILDREN CARDS */}
 
             {!loading &&
@@ -544,8 +690,20 @@ function Children() {
 
                 <div className="children-cards">
 
-                  {children.map((child) => (
+                  {children.map((child) => {
+                    const v = child.vaccineSummary || {
+                      total: 0,
+                      completed: 0,
+                      upcoming: 0,
+                      overdue: 0,
+                      percent: 0,
+                      nextVaccine: null,
+                      groups: [],
+                    };
 
+                    const isOpen = expandedId === child._id;
+
+                    return (
                     <article
                       className="child-profile-card"
                       key={child._id}
@@ -563,27 +721,51 @@ function Children() {
 
                           <h3>
                             {child.name}
+                            <em className="child-stage-badge">
+                              {getAgeStage(child.dateOfBirth)}
+                            </em>
                           </h3>
 
                           <p>
                             {child.gender} ·{" "}
-                            {calculateAge(
-                              child.dateOfBirth
-                            )}
+                            {calculateAge(child.dateOfBirth)}
                           </p>
 
                           <span>
                             Date of Birth:{" "}
-                            {formatDate(
-                              child.dateOfBirth
-                            )}
+                            {formatDate(child.dateOfBirth)}
                           </span>
 
                         </div>
 
-                        <button className="child-menu">
-                          ⋮
-                        </button>
+                        <div className="child-menu-wrap">
+
+                          <button
+                            className="child-menu"
+                            onClick={() =>
+                              setMenuId(
+                                menuId === child._id
+                                  ? null
+                                  : child._id
+                              )
+                            }
+                          >
+                            ⋮
+                          </button>
+
+                          {menuId === child._id && (
+                            <div className="child-menu-dropdown">
+                              <button
+                                onClick={() =>
+                                  handleDeleteChild(child)
+                                }
+                              >
+                                Delete child
+                              </button>
+                            </div>
+                          )}
+
+                        </div>
 
                       </div>
 
@@ -598,7 +780,7 @@ function Children() {
                           </span>
 
                           <strong>
-                            0%
+                            {v.percent}%
                           </strong>
 
                         </div>
@@ -607,16 +789,28 @@ function Children() {
 
                           <div
                             style={{
-                              width: "0%",
+                              width: `${v.percent}%`,
                             }}
                           ></div>
 
                         </div>
 
                         <p>
-                          0 of 0 vaccinations
+                          {v.completed} of {v.total} vaccinations
                           completed
                         </p>
+
+                        <div className="child-status-chips">
+                          <span className="chip completed">
+                            {v.completed} Completed
+                          </span>
+                          <span className="chip upcoming">
+                            {v.upcoming} Upcoming
+                          </span>
+                          <span className="chip overdue">
+                            {v.overdue} Overdue
+                          </span>
+                        </div>
 
                       </div>
 
@@ -631,11 +825,19 @@ function Children() {
                         <div className="next-vaccine-info">
 
                           <span>
-                            NEXT VACCINATION
+                            {v.nextVaccine
+                              ? v.nextVaccine.status === "Overdue"
+                                ? "OVERDUE VACCINATION"
+                                : "NEXT VACCINATION"
+                              : "NEXT VACCINATION"}
                           </span>
 
                           <strong>
-                            Not scheduled
+                            {v.nextVaccine
+                              ? `${v.nextVaccine.name} · ${v.nextVaccine.ageGroup}`
+                              : v.total > 0
+                              ? "All vaccines completed 🎉"
+                              : "Not scheduled"}
                           </strong>
 
                         </div>
@@ -643,16 +845,105 @@ function Children() {
                         <div className="next-vaccine-date">
 
                           <strong>
-                            —
+                            {v.nextVaccine
+                              ? formatShortDate(v.nextVaccine.date)
+                              : "—"}
                           </strong>
 
-                          <span>
-                            Upcoming
-                          </span>
+                          {v.nextVaccine && (
+                            <span
+                              className={
+                                v.nextVaccine.status === "Overdue"
+                                  ? "status-overdue"
+                                  : ""
+                              }
+                            >
+                              {v.nextVaccine.status}
+                            </span>
+                          )}
 
                         </div>
 
                       </div>
+
+                      {/* ================= VACCINE CHECKLIST (by age) ================= */}
+
+                      {isOpen && (
+                        <div className="vaccine-checklist">
+
+                          {v.groups.map((group) => (
+                            <div
+                              className="vaccine-group"
+                              key={group.label}
+                            >
+
+                              <div className="vaccine-group-header">
+                                <strong>{group.label}</strong>
+                                <span>
+                                  {group.completed}/
+                                  {group.items.length} done
+                                </span>
+                              </div>
+
+                              {group.items.map((vaccine) => (
+                                <div
+                                  className={`vaccine-row ${vaccine.status.toLowerCase()}`}
+                                  key={vaccine._id}
+                                >
+
+                                  <div className="vaccine-row-info">
+                                    <strong>
+                                      {vaccine.name}
+                                      <small>
+                                        {" "}
+                                        · {vaccine.dose} dose
+                                      </small>
+                                    </strong>
+                                    <span>
+                                      {vaccine.description}
+                                    </span>
+                                    <span>
+                                      {vaccine.status === "Completed" &&
+                                      vaccine.completedAt
+                                        ? `Given on ${formatShortDate(vaccine.completedAt)}`
+                                        : `Due ${formatShortDate(vaccine.date)}`}
+                                    </span>
+                                  </div>
+
+                                  <span
+                                    className={`vaccine-badge ${vaccine.status.toLowerCase()}`}
+                                  >
+                                    {vaccine.status}
+                                  </span>
+
+                                  <button
+                                    className={
+                                      vaccine.status === "Completed"
+                                        ? "vaccine-undo-button"
+                                        : "vaccine-complete-button"
+                                    }
+                                    disabled={
+                                      completingId === vaccine._id
+                                    }
+                                    onClick={() =>
+                                      handleToggleVaccine(vaccine)
+                                    }
+                                  >
+                                    {completingId === vaccine._id
+                                      ? "..."
+                                      : vaccine.status === "Completed"
+                                      ? "Undo"
+                                      : "Mark Completed"}
+                                  </button>
+
+                                </div>
+                              ))}
+
+                            </div>
+                          ))}
+
+                        </div>
+                      )}
 
                       {/* ================= ACTIONS ================= */}
 
@@ -661,13 +952,22 @@ function Children() {
                         <button
                           className="view-child-button"
                           onClick={() =>
-                            handleViewChild(
-                              child._id
-                            )
+                            handleViewChild(child._id)
                           }
                         >
                           View Details
                           <span>→</span>
+                        </button>
+
+                        <button
+                          className="toggle-vaccines-button"
+                          onClick={() =>
+                            setExpandedId(
+                              isOpen ? null : child._id
+                            )
+                          }
+                        >
+                          {isOpen ? "Hide Vaccines" : "Vaccines"}
                         </button>
 
                         <button
@@ -682,8 +982,8 @@ function Children() {
                       </div>
 
                     </article>
-
-                  ))}
+                    );
+                  })}
 
                 </div>
 

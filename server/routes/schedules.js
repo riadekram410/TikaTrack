@@ -7,6 +7,8 @@ import {
     updateSchedule,
     deleteSchedule,
     generateSchedulesForExistingChildren,
+    markScheduleCompleted,
+    undoScheduleCompleted,
 } from "../controller/scheduleController.js";
 
 import checkToken from "../middlewares/checkToken.js";
@@ -28,6 +30,12 @@ router.get("/", checkToken, getSchedules);
 
 // Get one schedule
 router.get("/:id", checkToken, getSchedule);
+
+// Mark vaccine as completed
+router.put("/:id/complete", checkToken, markScheduleCompleted);
+
+// Undo completed
+router.put("/:id/undo", checkToken, undoScheduleCompleted);
 
 // Update schedule
 router.put("/:id", checkToken, updateSchedule);
