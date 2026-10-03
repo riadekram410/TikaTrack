@@ -48,6 +48,18 @@ const userSchema = new Schema(
             enum: [1, 2, 3, 7],
             default: 3,
         },
+
+        // ================= PASSWORD RESET =================
+
+        resetPasswordToken: {
+            type: String,
+            default: null,
+        },
+
+        resetPasswordExpires: {
+            type: Date,
+            default: null,
+        },
     },
     {
         timestamps: true,
