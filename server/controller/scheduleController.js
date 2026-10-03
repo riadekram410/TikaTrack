@@ -10,10 +10,11 @@ import { generateVaccineSchedule } from "../utils/vaccineSchedule.js";
 const updateAutomaticStatuses = async (schedules) => {
     const today = new Date();
 
+    const bulkOperations = [];
+
     for (const schedule of schedules) {
 
-        // যদি vaccine already completed হয়,
-        // তাহলে automatic status change হবে না
+        // Completed হলে আর automatic status change হবে না
         if (schedule.status === "Completed") {
             continue;
         }
@@ -22,18 +23,49 @@ const updateAutomaticStatuses = async (schedules) => {
             schedule.date
         );
 
-        if (vaccineDate < today) {
-            schedule.status = "Overdue";
-        } else {
-            schedule.status = "Upcoming";
-        }
+        const newStatus =
+            vaccineDate < today
+                ? "Overdue"
+                : "Upcoming";
 
-        await schedule.save();
+
+        // Status actually change হলেই database update করবে
+        if (schedule.status !== newStatus) {
+
+            bulkOperations.push({
+                updateOne: {
+                    filter: {
+                        _id: schedule._id,
+                    },
+
+                    update: {
+                        $set: {
+                            status: newStatus,
+                        },
+                    },
+                },
+            });
+
+
+            // Response-এর জন্য object update
+            schedule.status =
+                newStatus;
+        }
     }
+
+
+    // সব status একসাথে update
+    if (bulkOperations.length > 0) {
+
+        await Schedule.bulkWrite(
+            bulkOperations
+        );
+
+    }
+
 
     return schedules;
 };
-
 
 // ======================================================
 // GENERATE SCHEDULES FOR EXISTING CHILDREN

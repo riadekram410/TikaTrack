@@ -1,11 +1,19 @@
+
+
+import CarbonFootprintDisplay from "../../components/CarbonFootprintDisplay";
+
 import Navbar from "../../components/Navbar";
 import FeatureCard from "../../components/FeatureCard";
 import Footer from "../../components/Footer";
+
 import heroImage from "../../assets/hero.png";
 
 function Landing() {
   return (
     <div className="landing-page">
+
+      {/* CARBON FOOTPRINT POPUP */}
+      <CarbonFootprintDisplay />
 
       <Navbar />
 
@@ -14,6 +22,7 @@ function Landing() {
         <div className="container hero-container">
 
           <div className="hero-content">
+
             <span className="hero-badge">
               Child Vaccination Tracking
             </span>
@@ -40,6 +49,7 @@ function Landing() {
             </div>
 
             <div className="hero-trust">
+
               <div className="trust-item">
                 <strong>Simple</strong>
                 <span>Easy to use</span>
@@ -58,10 +68,13 @@ function Landing() {
                 <strong>Timely</strong>
                 <span>Helpful reminders</span>
               </div>
+
             </div>
+
           </div>
 
           <div className="hero-visual">
+
             <div className="hero-circle"></div>
 
             <div className="hero-image-wrapper">
@@ -89,17 +102,18 @@ function Landing() {
                 <span>Dose due soon</span>
               </div>
             </div>
+
           </div>
 
         </div>
       </section>
-
 
       {/* FEATURES SECTION */}
       <section className="features-section" id="features">
         <div className="container">
 
           <div className="section-heading">
+
             <span className="section-label">
               FEATURES
             </span>
@@ -113,6 +127,7 @@ function Landing() {
               TikaTrack makes it easier to manage, monitor,
               and remember every important vaccination.
             </p>
+
           </div>
 
           <div className="features-grid">
@@ -140,12 +155,12 @@ function Landing() {
         </div>
       </section>
 
-
       {/* ABOUT SECTION */}
       <section className="about-section" id="about">
         <div className="container about-container">
 
           <div className="about-content">
+
             <span className="section-label">
               ABOUT TIKATRACK
             </span>
@@ -170,6 +185,7 @@ function Landing() {
             <a href="#how-it-works" className="text-link">
               See how it works →
             </a>
+
           </div>
 
           <div className="about-card">
@@ -212,12 +228,12 @@ function Landing() {
         </div>
       </section>
 
-
       {/* HOW IT WORKS */}
       <section className="how-section" id="how-it-works">
         <div className="container">
 
           <div className="section-heading">
+
             <span className="section-label">
               HOW IT WORKS
             </span>
@@ -231,6 +247,7 @@ function Landing() {
               Register your child once and let TikaTrack
               help you stay organized.
             </p>
+
           </div>
 
           <div className="steps-grid">
@@ -316,7 +333,6 @@ function Landing() {
         </div>
       </section>
 
-
       {/* CTA SECTION */}
       <section className="cta-section">
         <div className="container cta-container">
@@ -342,7 +358,6 @@ function Landing() {
 
         </div>
       </section>
-
 
       <Footer />
 
