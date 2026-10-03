@@ -886,3 +886,41 @@
   }
 
 }
+/* =========================================
+   SETTINGS BUTTON STATES
+========================================= */
+
+.toggle:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* =========================================
+   DELETE ACCOUNT HOVER
+========================================= */
+
+.delete-account-btn:hover {
+    background: #fff0ee;
+}
+
+
+/* =========================================
+   SETTINGS ACTION MESSAGE
+========================================= */
+
+.settings-last-updated {
+    min-height: 16px;
+}
+
+
+/* =========================================
+   MOBILE MESSAGE
+========================================= */
+
+@media (max-width: 760px) {
+    .settings-last-updated {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+}

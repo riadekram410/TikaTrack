@@ -1,26 +1,50 @@
 import express from "express";
 
 import {
-  createUser,
-  getProfile,
-  updateProfile,
-  changePassword,
+    createUser,
+    getProfile,
+    getSettings,
+    updateSettings,
+    deleteAccount,
 } from "../controller/userController.js";
 
 import checkToken from "../middlewares/checkToken.js";
 
 const router = express.Router();
 
+
 // Register
 router.post("/", createUser);
 
-// Load profile
-router.get("/profile", checkToken, getProfile);
 
-// Save personal details
-router.put("/profile", checkToken, updateProfile);
+// Profile
+router.get(
+    "/profile",
+    checkToken,
+    getProfile
+);
 
-// Change password
-router.put("/change-password", checkToken, changePassword);
+
+// Settings
+router.get(
+    "/settings",
+    checkToken,
+    getSettings
+);
+
+router.put(
+    "/settings",
+    checkToken,
+    updateSettings
+);
+
+
+// Delete Account
+router.delete(
+    "/account",
+    checkToken,
+    deleteAccount
+);
+
 
 export default router;
