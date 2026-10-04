@@ -9,11 +9,16 @@ import {
 
 import { sendPasswordResetEmail } from "../utils/email.js";
 
+const RESET_MESSAGE =
+    "If the email exists, a password reset link has been sent.";
 
-// =====================================================
+const INVALID_LINK =
+    "Invalid or expired reset link. Please request a new link.";
+
+const hashToken = (token) =>
+    crypto.createHash("sha256").update(token).digest("hex");
+
 // LOGIN
-// =====================================================
-
 export const login = async (req, res) => {
     try {
         const { email, phone, password } = req.body;
@@ -76,7 +81,7 @@ export const login = async (req, res) => {
             },
         });
     } catch (err) {
-        console.log(`Error logging in: ${err}`);
+        console.error("Login failed:", err.name);
 
         return res.status(500).json({
             error: "Server error",
@@ -84,11 +89,7 @@ export const login = async (req, res) => {
     }
 };
 
-
-// =====================================================
 // LOGOUT
-// =====================================================
-
 export const logout = (req, res) => {
     try {
         res.clearCookie("token", {
@@ -102,7 +103,7 @@ export const logout = (req, res) => {
             message: "Logout successful",
         });
     } catch (err) {
-        console.log(`Error logging out: ${err}`);
+        console.error("Logout failed:", err.name);
 
         return res.status(500).json({
             error: "Server error",
@@ -110,123 +111,200 @@ export const logout = (req, res) => {
     }
 };
 
-
-// =====================================================
 // FORGOT PASSWORD
-// =====================================================
-
 export const forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body;
+    let savedToken;
+    let userId;
 
-        if (!email) {
+    try {
+        const email = req.body?.email;
+
+        if (typeof email !== "string" || !email.trim()) {
             return res.status(400).json({
                 error: "Email is required",
             });
         }
 
         const user = await User.findOne({
-            email: email.toLowerCase(),
+            email: email.trim().toLowerCase(),
         });
 
-        // Do not reveal whether the email exists
+        // Keep the response the same for unknown email addresses.
         if (!user) {
             return res.status(200).json({
-                message:
-                    "If the email exists, a password reset link has been sent.",
+                message: RESET_MESSAGE,
             });
         }
 
-        // Generate random reset token
-        const resetToken = crypto
-            .randomBytes(32)
-            .toString("hex");
+        // This must point to your frontend.
+        const clientUrl = new URL(process.env.CLIENT_URL);
 
-        // Save token
-        user.resetPasswordToken = resetToken;
+        if (!["http:", "https:"].includes(clientUrl.protocol)) {
+            throw new Error("Invalid CLIENT_URL");
+        }
 
-        // Token expires after 15 minutes
-        user.resetPasswordExpires = new Date(
+        const token = crypto.randomBytes(32).toString("hex");
+
+        // Email the original token; store only its hash.
+        savedToken = hashToken(token);
+        userId = user._id;
+
+        const expires = new Date(
             Date.now() + 15 * 60 * 1000
         );
 
-        await user.save();
+        const result = await User.updateOne(
+            {
+                _id: userId,
+            },
+            {
+                $set: {
+                    resetPasswordToken: savedToken,
+                    resetPasswordExpires: expires,
+                },
+            },
+            {
+                runValidators: true,
+            }
+        );
 
-        // Create reset link
-        const resetLink =
-            `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+        // Confirm MongoDB saved both values before sending email.
+        const persisted =
+            result.matchedCount === 1 &&
+            await User.exists({
+                _id: userId,
+                resetPasswordToken: savedToken,
+                resetPasswordExpires: expires,
+            });
 
-        // Send email
+        if (!persisted) {
+            throw new Error(
+                "Reset token persistence check failed"
+            );
+        }
+
+        const resetLink = new URL(
+            `/reset-password/${token}`,
+            clientUrl
+        ).href;
+
         await sendPasswordResetEmail(
             user.email,
             resetLink
         );
 
         return res.status(200).json({
-            message:
-                "If the email exists, a password reset link has been sent.",
+            message: RESET_MESSAGE,
         });
     } catch (err) {
-        console.log(
-            `Error sending password reset email: ${err}`
+        // Clear this failed request without deleting a newer token.
+        if (userId && savedToken) {
+            try {
+                await User.updateOne(
+                    {
+                        _id: userId,
+                        resetPasswordToken: savedToken,
+                    },
+                    {
+                        $set: {
+                            resetPasswordToken: null,
+                            resetPasswordExpires: null,
+                        },
+                    }
+                );
+            } catch {
+                console.error(
+                    "Unable to clear failed password reset request"
+                );
+            }
+        }
+
+        console.error(
+            "Password reset email failed:",
+            err.name
         );
 
         return res.status(500).json({
-            error: "Unable to send password reset email",
+            error:
+                "Unable to create or send the reset link. Please try again.",
         });
     }
 };
 
-
-// =====================================================
 // RESET PASSWORD
-// =====================================================
-
 export const resetPassword = async (req, res) => {
     try {
-        const { token, password } = req.body;
+        const { token, password } = req.body || {};
 
-        if (!token || !password) {
+        if (
+            typeof token !== "string" ||
+            !/^[a-f0-9]{64}$/i.test(token)
+        ) {
             return res.status(400).json({
-                error: "Token and new password are required",
+                error: INVALID_LINK,
             });
         }
 
-        if (password.length < 6) {
+        if (
+            typeof password !== "string" ||
+            password.length < 8 ||
+            Buffer.byteLength(password, "utf8") > 72
+        ) {
             return res.status(400).json({
-                error: "Password must be at least 6 characters",
+                error:
+                    "Password must contain at least 8 characters and at most 72 UTF-8 bytes.",
             });
         }
 
-        // Find user with valid and non-expired token
-        const user = await User.findOne({
-            resetPasswordToken: token,
+        // Use the same hashing method used when saving the token.
+        const tokenHash = hashToken(token);
+
+        const validToken = () => ({
+            resetPasswordToken: tokenHash,
             resetPasswordExpires: {
                 $gt: new Date(),
             },
         });
 
-        if (!user) {
+        const exists = await User.exists(validToken());
+
+        if (!exists) {
             return res.status(400).json({
-                error: "Invalid or expired reset link",
+                error: INVALID_LINK,
             });
         }
 
-        // Hash new password
-        user.password = await hashPassword(password);
+        const hashedPassword = await hashPassword(password);
 
-        // Remove reset token
-        user.resetPasswordToken = null;
-        user.resetPasswordExpires = null;
+        // Update the password and consume the token in one operation.
+        // Rechecking the token prevents reuse and concurrent resets.
+        const result = await User.updateOne(
+            validToken(),
+            {
+                $set: {
+                    password: hashedPassword,
+                    resetPasswordToken: null,
+                    resetPasswordExpires: null,
+                },
+            },
+            {
+                runValidators: true,
+            }
+        );
 
-        await user.save();
+        if (result.modifiedCount !== 1) {
+            return res.status(400).json({
+                error: INVALID_LINK,
+            });
+        }
 
         return res.status(200).json({
             message: "Password reset successfully",
         });
     } catch (err) {
-        console.log(
-            `Error resetting password: ${err}`
+        console.error(
+            "Password reset failed:",
+            err.name
         );
 
         return res.status(500).json({

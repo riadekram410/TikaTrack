@@ -26,8 +26,6 @@ const userSchema = new Schema(
             required: true,
         },
 
-        // ================= SETTINGS =================
-
         vaccinationReminders: {
             type: Boolean,
             default: true,
@@ -49,16 +47,16 @@ const userSchema = new Schema(
             default: 3,
         },
 
-        // ================= PASSWORD RESET =================
-
         resetPasswordToken: {
             type: String,
             default: null,
+            select: false,
         },
 
         resetPasswordExpires: {
             type: Date,
             default: null,
+            select: false,
         },
     },
     {
