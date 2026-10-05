@@ -51,7 +51,7 @@ function Children() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/children",
+`${import.meta.env.VITE_API_URL}/children`,
         {
           method: "GET",
           credentials: "include",
@@ -80,7 +80,7 @@ function Children() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/users/profile",
+          `${import.meta.env.VITE_API_URL}/users/profile`,
           {
             method: "GET",
             credentials: "include",
@@ -163,8 +163,8 @@ function Children() {
 
       const response = await fetch(
         editingChild
-          ? `http://localhost:5000/api/children/${editingChild._id}`
-          : "http://localhost:5000/api/children",
+          ? `${import.meta.env.VITE_API_URL}/children/${editingChild._id}`
+          : `${import.meta.env.VITE_API_URL}/children`,
         {
           method: editingChild ? "PUT" : "POST",
 
@@ -265,7 +265,7 @@ function Children() {
         vaccine.status === "Completed" ? "undo" : "complete";
 
       const response = await fetch(
-        `http://localhost:5000/api/schedules/${vaccine._id}/${endpoint}`,
+        `${import.meta.env.VITE_API_URL}/schedules/${vaccine._id}/${endpoint}`,
         {
           method: "PUT",
           credentials: "include",
@@ -306,7 +306,7 @@ function Children() {
       setActionError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/children/${child._id}`,
+        `${import.meta.env.VITE_API_URL}/children/${child._id}`,
         {
           method: "DELETE",
           credentials: "include",

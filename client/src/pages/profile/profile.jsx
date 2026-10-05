@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./profile.css";
 
-const API = "http://localhost:5000/api/users";
+const API = import.meta.env.VITE_API_URL;
 
 const toDraft = (user) => ({
   name: user.name || "",

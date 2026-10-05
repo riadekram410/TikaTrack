@@ -9,7 +9,7 @@ function PublicRoute({ children }) {
         const checkAuthentication = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/users/profile",
+                     `${import.meta.env.VITE_API_URL}/users/profile`,
                     {
                         method: "GET",
                         credentials: "include",

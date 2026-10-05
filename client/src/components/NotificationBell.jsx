@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import "./NotificationBell.css";
 
-const API = "http://localhost:5000/api";
+ const API = import.meta.env.VITE_API_URL;
 
 const DAY = 1000 * 60 * 60 * 24;
 

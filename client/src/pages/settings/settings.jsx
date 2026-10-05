@@ -65,7 +65,7 @@ function Settings() {
             ] = await Promise.all([
 
                 fetch(
-                    "http://localhost:5000/api/users/profile",
+                     `${import.meta.env.VITE_API_URL}/users/profile`,
                     {
                         method: "GET",
                         credentials: "include",
@@ -74,7 +74,7 @@ function Settings() {
                 ),
 
                 fetch(
-                    "http://localhost:5000/api/users/settings",
+                    `${import.meta.env.VITE_API_URL}/users/settings`,
                     {
                         method: "GET",
                         credentials: "include",
@@ -200,7 +200,7 @@ function Settings() {
 
 
             const response = await fetch(
-                "http://localhost:5000/api/users/settings",
+                `${import.meta.env.VITE_API_URL}/users/settings`,
                 {
                     method: "PUT",
 
@@ -384,7 +384,7 @@ function Settings() {
         try {
 
             const response = await fetch(
-                "http://localhost:5000/api/auth/logout",
+                `${import.meta.env.VITE_API_URL}/auth/logout`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -465,7 +465,7 @@ function Settings() {
 
 
             const response = await fetch(
-                "http://localhost:5000/api/users/account",
+                `${import.meta.env.VITE_API_URL}/users/account`,
                 {
                     method: "DELETE",
                     credentials: "include",

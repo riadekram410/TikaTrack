@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
-const API = "http://localhost:5000/api";
+const API = import.meta.env.VITE_API_URL;
 
 function Dashboard() {
   const navigate = useNavigate();

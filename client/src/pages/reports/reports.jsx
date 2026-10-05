@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./reports.css";
 
-const API = "http://localhost:5000/api";
+const API = import.meta.env.VITE_API_URL;
 
 const formatDate = (date) =>
   date
