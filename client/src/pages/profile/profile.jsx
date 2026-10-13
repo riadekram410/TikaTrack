@@ -208,7 +208,7 @@ function Profile() {
     setPasswordSaving(true);
 
     try {
-      const response = await fetch(`${API}/change-password`, {
+      const response = await fetch(`${API}/users/change-password`, {
         method: "PUT",
         credentials: "include",
         headers: {
