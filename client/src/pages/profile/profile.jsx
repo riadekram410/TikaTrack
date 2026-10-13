@@ -53,7 +53,7 @@ function Profile() {
 
     const loadProfile = async () => {
       try {
-        const response = await fetch(`${API}/profile`, {
+        const response = await fetch(`${API}/users/profile`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
